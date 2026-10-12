@@ -38,80 +38,107 @@ BRAIN_FILL = "#DCE9F6"
 FONT = "'Helvetica Neue', Helvetica, 'Segoe UI', sans-serif"
 
 # ----------------------------------------------------------------------------- head + brain
-# Local coordinates: a head in profile facing right, about 300 x 380.
-HEAD = ("M95,380 C90,330 60,300 45,260 C20,200 20,120 60,70 C100,20 190,10 235,55 C262,85 270,120 268,150 "
-        "C268,165 272,172 276,180 C285,200 300,225 298,235 C296,242 285,245 280,246 C284,252 286,262 281,268 "
-        "C279,271 283,276 283,282 C282,292 276,300 272,305 C268,318 262,328 245,332 C225,335 205,335 195,345 "
-        "C190,355 192,370 195,380 Z")
-BRAIN = ("M60,175 C35,150 35,100 65,70 C100,35 180,30 225,62 C250,82 258,120 250,150 C246,170 230,180 215,182 "
-         "C205,190 210,205 195,212 C170,222 130,215 110,200 C95,195 75,190 60,175 Z")
-EYE = (247.0, 170.0)
-OZ = (21.0, 160.0)
-EAR = (150.0, 214.0)
-V1 = (52.0, 126.0)
-PATHWAY = "M245,172 C225,185 210,192 195,191 C170,188 155,170 140,162 C112,150 82,140 54,127"
-
-
-def gyri(seed: int = 4, n: int = 46) -> str:
-    """Procedural sulci: smooth random 'worms' inside the brain outline (clipped)."""
-    rng = np.random.default_rng(seed)
-    out = []
-    for _ in range(n):
-        x, y = rng.uniform(45, 250), rng.uniform(40, 210)
-        ang = rng.uniform(0, 2 * math.pi)
-        pts = [(x, y)]
-        for _ in range(rng.integers(4, 9)):
-            ang += rng.normal(0, 0.9)
-            step = rng.uniform(8, 15)
-            x, y = x + step * math.cos(ang), y + step * math.sin(ang)
-            pts.append((x, y))
-        d = f"M{pts[0][0]:.1f},{pts[0][1]:.1f} " + " ".join(
-            f"Q{pts[i][0]:.1f},{pts[i][1]:.1f} {(pts[i][0] + pts[i + 1][0]) / 2:.1f},{(pts[i][1] + pts[i + 1][1]) / 2:.1f}"
-            for i in range(1, len(pts) - 1))
-        op = rng.choice([0.22, 0.32, 0.42])
-        out.append(f'<path d="{d}" fill="none" stroke="{BLUE}" stroke-opacity="{op}" stroke-width="1.5" stroke-linecap="round"/>')
-    return "\n".join(out)
+# Local coordinates: a head in profile facing right, about 310 x 380. Anatomical layout
+# follows a standard lateral view: frontal, parietal, temporal and occipital lobes split
+# by the central sulcus and the lateral (Sylvian) fissure, cerebellum, brainstem, cord.
+HEAD = ("M110,380 C106,352 98,326 86,302 C52,268 24,220 24,158 C24,82 86,20 162,18 "
+        "C228,16 268,58 272,110 C273,124 271,136 275,146 C280,158 292,178 300,194 "
+        "C304,201 302,209 292,211 C287,212 285,215 286,220 C290,225 289,232 284,235 "
+        "C286,238 286,243 282,246 C287,251 285,258 279,261 C281,268 282,277 274,284 "
+        "C266,292 252,295 238,295 C222,295 210,300 204,310 C199,330 198,355 200,380 Z")
+BRAIN = ("M250,122 C254,74 216,32 164,30 C108,27 58,52 42,96 C30,124 30,156 42,170 "
+         "C55,184 77,186 96,182 C121,196 158,202 186,194 C206,188 222,178 220,166 "
+         "C236,160 249,146 250,122 Z")
+CEREBELLUM = "M82,182 C68,191 70,218 93,225 C116,231 138,222 140,206 C138,193 118,185 98,183 Z"
+BRAINSTEM = ("M126,188 C136,208 138,236 134,270 C133,282 131,292 129,302 L119,302 "
+             "C120,288 120,276 119,264 C118,232 115,210 108,196 Z")
+CORD = "M119,302 L129,302 L127,380 L121,380 Z"
+EAR_PATH = ("M186,172 C182,162 162,160 156,176 C151,190 155,206 160,216 C163,224 164,232 172,234 "
+            "C180,236 183,228 182,222 C184,216 190,210 189,202 C188,194 190,182 186,172 Z")
+SULCI_MAJOR = ("M142,31 C146,55 158,72 156,95 C155,112 165,124 172,140",
+               "M216,166 C196,156 172,146 150,134 C138,128 126,124 116,124")
+SULCI = ("M162,32 C167,56 176,74 175,98 C175,116 183,128 190,146",
+         "M124,37 C128,60 139,74 137,96 C136,112 144,122 150,131",
+         "M238,86 C222,68 202,60 180,62", "M246,118 C230,104 210,98 190,100",
+         "M224,142 C212,132 200,128 190,128", "M128,74 C112,76 98,86 90,104",
+         "M108,48 C100,58 94,70 92,82", "M211,180 C187,172 157,162 122,148",
+         "M190,192 C166,188 140,180 110,166", "M72,62 C62,88 60,116 66,146",
+         "M54,94 C48,114 48,134 54,160", "M112,104 C104,110 100,120 102,130")
+FOLIA = ("M84,197 C101,191 121,194 138,202", "M80,207 C100,203 122,205 140,212", "M85,217 C101,215 119,217 133,221")
+EYE = (255.0, 155.0)
+OZ = (21.0, 146.0)
+EAR = (173.0, 239.0)  # earlobe: reference electrode
+V1 = (44.0, 144.0)
+LGN = (142.0, 165.0)
+PATHWAY = "M249,157 C228,164 204,168 182,168 C164,168 153,166 142,165 C117,160 82,151 45,144"
 
 
 def head_group(uid: str, tx: float, ty: float, s: float, mirror: bool = False, labels: bool = True) -> str:
     sx = -s if mirror else s
-    cb = ("M70,197 C60,210 72,234 100,236 C126,238 140,226 136,212 C128,200 100,196 70,197 Z")
+    sulci = "".join(f'<path d="{d}" fill="none" stroke="{BLUE}" stroke-opacity="0.45" stroke-width="1.3" stroke-linecap="round"/>' for d in SULCI)
+    major = "".join(f'<path d="{d}" fill="none" stroke="{NAVY}" stroke-opacity="0.55" stroke-width="2" stroke-linecap="round"/>' for d in SULCI_MAJOR)
+    folia = "".join(f'<path d="{d}" fill="none" stroke="{BLUE}" stroke-opacity="0.4" stroke-width="1.1"/>' for d in FOLIA)
     return f"""
 <g transform="translate({tx},{ty}) scale({sx},{s})">
   <defs>
     <clipPath id="brainclip-{uid}"><path d="{BRAIN}"/></clipPath>
-    <radialGradient id="occ-{uid}" cx="{V1[0]}" cy="{V1[1]}" r="70" gradientUnits="userSpaceOnUse">
+    <clipPath id="cbclip-{uid}"><path d="{CEREBELLUM}"/></clipPath>
+    <radialGradient id="occ-{uid}" cx="{V1[0]}" cy="{V1[1]}" r="62" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="{BLUE}" stop-opacity="0.55"/>
-      <stop offset="0.55" stop-color="{BLUE}" stop-opacity="0.16"/>
+      <stop offset="0.6" stop-color="{BLUE}" stop-opacity="0.14"/>
       <stop offset="1" stop-color="{BLUE}" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="skin-{uid}" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="{SKIN}"/><stop offset="1" stop-color="{SKIN2}"/>
+    <linearGradient id="neckfade-{uid}" x1="0" y1="0" x2="0" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0.8" stop-color="#FFFFFF"/><stop offset="1" stop-color="#000000"/>
+    </linearGradient>
+    <mask id="neckmask-{uid}" maskUnits="userSpaceOnUse" x="-20" y="-20" width="360" height="410">
+      <rect x="-20" y="-20" width="360" height="410" fill="url(#neckfade-{uid})"/>
+    </mask>
+    <linearGradient id="brainfill-{uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E6EFF9"/><stop offset="1" stop-color="#D6E5F5"/>
+    </linearGradient>
+    <linearGradient id="cord-{uid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D6E5F5" stop-opacity="1"/><stop offset="1" stop-color="#D6E5F5" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="skin-{uid}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F3F7FC"/><stop offset="1" stop-color="#E4EDF7"/>
     </linearGradient>
   </defs>
-  <path d="{HEAD}" fill="url(#skin-{uid})" stroke="{SKIN_LINE}" stroke-width="2"/>
-  <path d="{BRAIN}" fill="{BRAIN_FILL}" stroke="{BLUE}" stroke-opacity="0.8" stroke-width="1.6"/>
-  <g clip-path="url(#brainclip-{uid})">
-    <rect x="0" y="0" width="300" height="260" fill="url(#occ-{uid})"/>
-    {gyri()}
-    <path d="M205,180 C182,152 150,146 118,140" fill="none" stroke="{MINT}" stroke-opacity="0.5" stroke-width="2"/>
-    <path d="M160,38 C150,80 156,110 140,140" fill="none" stroke="{MINT}" stroke-opacity="0.45" stroke-width="2"/>
+  <g mask="url(#neckmask-{uid})">
+    <path d="{HEAD}" fill="url(#skin-{uid})" stroke="{SKIN_LINE}" stroke-width="2" stroke-linejoin="round"/>
+    <path d="{CORD}" fill="url(#cord-{uid})"/>
   </g>
-  <path d="{cb}" fill="{BRAIN_FILL}" stroke="{BLUE}" stroke-opacity="0.6" stroke-width="1.4"/>
-  <path d="M82,212 C95,206 115,206 130,214 M78,222 C95,216 118,218 132,224" fill="none" stroke="{MINT}" stroke-opacity="0.3" stroke-width="1.2"/>
-  <path d="M128,206 C132,240 134,270 140,300" fill="none" stroke="{PALE}" stroke-opacity="0.9" stroke-width="7" stroke-linecap="round"/>
-  <path d="{PATHWAY}" fill="none" stroke="{FLASH}" stroke-width="2.6" stroke-dasharray="6 5" filter="url(#glow)"/>
-  <circle cx="{V1[0]}" cy="{V1[1]}" r="6" fill="{MINT}" filter="url(#glow)"/>
-  <circle cx="140" cy="162" r="4" fill="{FLASH}"/>
-  <path d="M236,166 C242,160 254,160 260,168 C254,176 242,176 236,170 Z" fill="#FFFFFF" stroke="{SKIN_LINE}" stroke-width="1.4"/>
-  <circle cx="249" cy="168" r="3.4" fill="{FLASH}"/>
-  <path d="M150,180 C138,182 136,200 140,212 C143,222 152,226 156,218 C160,208 156,198 160,190 C162,184 158,180 150,180 Z"
-        fill="{SKIN2}" stroke="{SKIN_LINE}" stroke-width="1.4"/>
-  <path d="M8,168 C8,160 14,152 22,150" fill="none" stroke="{MINT}" stroke-width="0"/>
+  <path d="{BRAINSTEM}" fill="#DCE8F5" stroke="{BLUE}" stroke-opacity="0.6" stroke-width="1.4"/>
+  <path d="{CEREBELLUM}" fill="#D3E3F4" stroke="{BLUE}" stroke-opacity="0.7" stroke-width="1.5"/>
+  <g clip-path="url(#cbclip-{uid})">{folia}</g>
+  <g clip-path="url(#brainclip-{uid})">
+    <rect x="0" y="0" width="320" height="260" fill="url(#brainfill-{uid})"/>
+    <rect x="0" y="0" width="320" height="260" fill="url(#occ-{uid})"/>
+    {sulci}{major}
+  </g>
+  <path d="{BRAIN}" fill="none" stroke="{BLUE}" stroke-opacity="0.85" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M238,295 C214,292 194,281 184,262" fill="none" stroke="{SKIN_LINE}" stroke-opacity="0.7" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="{EAR_PATH}" fill="#E8F0F8" stroke="{SKIN_LINE}" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M180,176 C168,172 162,184 164,196 C165,204 170,210 172,218" fill="none" stroke="{SKIN_LINE}" stroke-width="1.3" stroke-linecap="round"/>
+  <ellipse cx="178" cy="199" rx="5" ry="8" fill="#D5E2EF"/>
+  <path d="M240,139 Q252,133 266,140" fill="none" stroke="{SKIN_LINE}" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M247,151 Q256,147 263,155 Q256,161 247,159" fill="#FFFFFF" stroke="#6F8DAE" stroke-width="1.4" stroke-linejoin="round"/>
+  <circle cx="{EYE[0] + 1}" cy="{EYE[1]}" r="2.6" fill="{NAVY}"/>
+  <path d="M289,207 Q283,202 278,206" fill="none" stroke="{SKIN_LINE}" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M282,240 L273,241" stroke="{SKIN_LINE}" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="{PATHWAY}" fill="none" stroke="{FLASH}" stroke-width="2.6" stroke-dasharray="6 5" stroke-linecap="round"/>
+  <circle cx="{V1[0]}" cy="{V1[1]}" r="5.5" fill="{NAVY}" stroke="#FFFFFF" stroke-width="1.5"/>
+  <circle cx="{LGN[0]}" cy="{LGN[1]}" r="4" fill="{FLASH}" stroke="#FFFFFF" stroke-width="1.2"/>
   <circle cx="{OZ[0]}" cy="{OZ[1]}" r="8" fill="#FFFFFF" stroke="{NAVY}" stroke-width="3"/>
-  <circle cx="{OZ[0]}" cy="{OZ[1]}" r="3" fill="{MINT}"/>
+  <circle cx="{OZ[0]}" cy="{OZ[1]}" r="3" fill="{NAVY}"/>
   <rect x="{EAR[0] - 6}" y="{EAR[1] - 4}" width="12" height="9" rx="2" fill="#FFFFFF" stroke="{NAVY}" stroke-width="1.5"/>
 </g>"""
+
+
+def preview_head(out):
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="700" height="800" viewBox="0 0 700 800">{defs()}
+<rect width="700" height="800" fill="#FFFFFF"/>{head_group("pv", 30, 20, 2.0)}</svg>"""
+    render(svg, 700, 800, out, scale=1.0)
 
 
 def local_to_global(p, tx, ty, s, mirror=False):
@@ -212,7 +239,7 @@ def hero(x, fs, alpha, trig):
     eye = local_to_global(EYE, tx, ty, s, True)
     oz = local_to_global(OZ, tx, ty, s, True)
     v1 = local_to_global(V1, tx, ty, s, True)
-    lgn = local_to_global((140, 162), tx, ty, s, True)
+    lgn = local_to_global(LGN, tx, ty, s, True)
     ledx, ledy = 790, eye[1] - 2
 
     # two-track figure: EEG (Oz) and the light stimulus, on a shared time axis
@@ -241,9 +268,9 @@ def hero(x, fs, alpha, trig):
 {T(ledx - 6, ledy + 50, "20 ms LED flash", 12.5, TEXT, 600, "middle")}
 {T(ledx - 6, ledy + 66, "at the alpha peak", 12, MUTED, 400, "middle")}
 {T(tx - 150 * s, ty + 8, "PARTICIPANT", 11.5, NAVY, 700, "middle", 'letter-spacing="1.5"')}
-{T(v1[0] - 10, v1[1] - 20, "visual cortex (V1)", 12, NAVY, 600, "end")}
-<line x1="{v1[0] - 4:.1f}" y1="{v1[1] - 4:.1f}" x2="{v1[0] - 8:.1f}" y2="{v1[1] - 16:.1f}" stroke="{NAVY}" stroke-opacity="0.5"/>
-{T(lgn[0], lgn[1] + 70, "retina → LGN → V1", 12, SKY, 600, "middle")}
+<path d="M{v1[0] + 3:.1f},{v1[1] - 5:.1f} L{v1[0] + 22:.1f},{v1[1] - 60:.1f} L{W - 12},{v1[1] - 60:.1f}" fill="none" stroke="{NAVY}" stroke-opacity="0.55" stroke-width="1"/>
+{T(W - 12, v1[1] - 66, "visual cortex (V1)", 12, NAVY, 600, "end")}
+{T(eye[0] - 30, eye[1] - 22, "retina → LGN → V1", 12, SKY, 600, "end")}
 {T(oz[0] + 14, oz[1] + 5, "Oz", 12, NAVY, 700, "start")}
 
 <!-- closed loop connectors -->
@@ -365,7 +392,7 @@ def hardware(x, fs, alpha, trig):
     tx, ty, s = 120, 176, 1.08
     G = lambda p: local_to_global(p, tx, ty, s)  # noqa: E731
     eye, oz, ear, v1 = G(EYE), G(OZ), G(EAR), G(V1)
-    lgn = G((140, 162))
+    lgn = G(LGN)
     ledx, ledy = 560, eye[1] - 4
     cy_c = (300, 736)
     lap = (962, 400, 400, 255)
