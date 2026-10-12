@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use NeuroBack, please cite it as below, together with Huang et al. (2019) and Schreglmann et al. (2021)."
+title: "NeuroBack: closed-loop, alpha-phase-locked visual stimulation for OpenBCI"
+version: 2.0.0
+date-released: 2026-10-12
+license: MIT
+repository-code: "https://github.com/abrilcode/neuroback"
+keywords: [EEG, OpenBCI, closed-loop, alpha, phase-locked stimulation, neurofeedback, BrainFlow]
+authors:
+  - family-names: Herrlein
+    given-names: Abril
+references:
+  - type: article
+    title: "A novel training-free externally-regulated neurofeedback (ER-NF) system using phase-guided visual stimulation for alpha modulation"
+    authors: [{family-names: Huang, given-names: Gan}]
+    journal: NeuroImage
+    volume: 189
+    start: 688
+    end: 699
+    year: 2019
+    doi: 10.1016/j.neuroimage.2019.01.072
+  - type: article
+    title: "Non-invasive suppression of essential tremor via phase-locked disruption of its temporal coherence"
+    authors: [{family-names: Schreglmann, given-names: Sebastian R.}]
+    journal: Nature Communications
+    volume: 12
+    start: 363
+    year: 2021
+    doi: 10.1038/s41467-020-20581-7

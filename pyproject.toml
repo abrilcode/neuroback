@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neuroback"
+version = "2.0.0"
+description = "Closed-loop, alpha-phase-locked visual stimulation for OpenBCI. Research and teaching software, not a medical device."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Abril Herrlein" }]
+keywords = ["EEG", "OpenBCI", "closed-loop", "alpha", "neurofeedback", "phase-locked stimulation", "BCI", "BrainFlow"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+  "Development Status :: 4 - Beta",
+]
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[project.optional-dependencies]
+gui = ["PyQt6>=6.5", "pyqtgraph>=0.13"]
+hardware = ["brainflow>=5.12", "pyserial>=3.5"]
+figures = ["matplotlib>=3.7", "pillow>=10"]
+dev = ["pytest>=7"]
+all = ["neuroback[gui,hardware,figures,dev]"]
+
+[project.scripts]
+neuroback = "neuroback.cli:main"
+
+[project.urls]
+Repository = "https://github.com/abrilcode/neuroback"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
