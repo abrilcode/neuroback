@@ -28,9 +28,14 @@ from neuroback.phase import EcHT  # noqa: E402
 ASSETS = ROOT / "assets"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
-BG, PANEL, PANEL2, BORDER = "#0A1820", "#10232C", "#153140", "#21404D"
-TEXT, MUTED, MINT, FLASH, RED, BLUE = "#E7F1F3", "#8BA6AF", "#6AFFA4", "#FFD166", "#FF5C61", "#5AB4FF"
-FONT = "'Avenir Next', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+# Light, journal-style palette (matches the README charts).
+BG, PANEL, PANEL2, BORDER = "#FFFFFF", "#F4F7FB", "#E8EFF7", "#D5DEE8"
+TEXT, MUTED = "#0F2742", "#5B6F86"
+NAVY, BLUE, PALE, SKY, RED = "#0B3C7A", "#3A7FC1", "#8DB4D9", "#0EA5E9", "#C2412D"
+MINT, FLASH = NAVY, SKY  # brain/EEG = navy, light stimulus = sky blue
+SKIN, SKIN2, SKIN_LINE = "#EEF4FA", "#E3ECF6", "#8FAAC6"
+BRAIN_FILL = "#DCE9F6"
+FONT = "'Helvetica Neue', Helvetica, 'Segoe UI', sans-serif"
 
 # ----------------------------------------------------------------------------- head + brain
 # Local coordinates: a head in profile facing right, about 300 x 380.
@@ -63,8 +68,8 @@ def gyri(seed: int = 4, n: int = 46) -> str:
         d = f"M{pts[0][0]:.1f},{pts[0][1]:.1f} " + " ".join(
             f"Q{pts[i][0]:.1f},{pts[i][1]:.1f} {(pts[i][0] + pts[i + 1][0]) / 2:.1f},{(pts[i][1] + pts[i + 1][1]) / 2:.1f}"
             for i in range(1, len(pts) - 1))
-        op = rng.choice([0.16, 0.24, 0.32])
-        out.append(f'<path d="{d}" fill="none" stroke="{MINT}" stroke-opacity="{op}" stroke-width="1.6" stroke-linecap="round"/>')
+        op = rng.choice([0.22, 0.32, 0.42])
+        out.append(f'<path d="{d}" fill="none" stroke="{BLUE}" stroke-opacity="{op}" stroke-width="1.5" stroke-linecap="round"/>')
     return "\n".join(out)
 
 
@@ -76,36 +81,36 @@ def head_group(uid: str, tx: float, ty: float, s: float, mirror: bool = False, l
   <defs>
     <clipPath id="brainclip-{uid}"><path d="{BRAIN}"/></clipPath>
     <radialGradient id="occ-{uid}" cx="{V1[0]}" cy="{V1[1]}" r="70" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="{MINT}" stop-opacity="0.75"/>
-      <stop offset="0.55" stop-color="{MINT}" stop-opacity="0.18"/>
-      <stop offset="1" stop-color="{MINT}" stop-opacity="0"/>
+      <stop offset="0" stop-color="{BLUE}" stop-opacity="0.55"/>
+      <stop offset="0.55" stop-color="{BLUE}" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="{BLUE}" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="skin-{uid}" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#173544"/><stop offset="1" stop-color="#1D4252"/>
+      <stop offset="0" stop-color="{SKIN}"/><stop offset="1" stop-color="{SKIN2}"/>
     </linearGradient>
   </defs>
-  <path d="{HEAD}" fill="url(#skin-{uid})" stroke="#3E6574" stroke-width="2"/>
-  <path d="{BRAIN}" fill="#0E2731" stroke="{MINT}" stroke-opacity="0.55" stroke-width="1.6"/>
+  <path d="{HEAD}" fill="url(#skin-{uid})" stroke="{SKIN_LINE}" stroke-width="2"/>
+  <path d="{BRAIN}" fill="{BRAIN_FILL}" stroke="{BLUE}" stroke-opacity="0.8" stroke-width="1.6"/>
   <g clip-path="url(#brainclip-{uid})">
     <rect x="0" y="0" width="300" height="260" fill="url(#occ-{uid})"/>
     {gyri()}
     <path d="M205,180 C182,152 150,146 118,140" fill="none" stroke="{MINT}" stroke-opacity="0.5" stroke-width="2"/>
     <path d="M160,38 C150,80 156,110 140,140" fill="none" stroke="{MINT}" stroke-opacity="0.45" stroke-width="2"/>
   </g>
-  <path d="{cb}" fill="#0E2731" stroke="{MINT}" stroke-opacity="0.4" stroke-width="1.4"/>
+  <path d="{cb}" fill="{BRAIN_FILL}" stroke="{BLUE}" stroke-opacity="0.6" stroke-width="1.4"/>
   <path d="M82,212 C95,206 115,206 130,214 M78,222 C95,216 118,218 132,224" fill="none" stroke="{MINT}" stroke-opacity="0.3" stroke-width="1.2"/>
-  <path d="M128,206 C132,240 134,270 140,300" fill="none" stroke="{MINT}" stroke-opacity="0.35" stroke-width="7" stroke-linecap="round"/>
+  <path d="M128,206 C132,240 134,270 140,300" fill="none" stroke="{PALE}" stroke-opacity="0.9" stroke-width="7" stroke-linecap="round"/>
   <path d="{PATHWAY}" fill="none" stroke="{FLASH}" stroke-width="2.6" stroke-dasharray="6 5" filter="url(#glow)"/>
   <circle cx="{V1[0]}" cy="{V1[1]}" r="6" fill="{MINT}" filter="url(#glow)"/>
   <circle cx="140" cy="162" r="4" fill="{FLASH}"/>
-  <path d="M236,166 C242,160 254,160 260,168 C254,176 242,176 236,170 Z" fill="#0A1820" stroke="#9CC3CF" stroke-width="1.4"/>
+  <path d="M236,166 C242,160 254,160 260,168 C254,176 242,176 236,170 Z" fill="#FFFFFF" stroke="{SKIN_LINE}" stroke-width="1.4"/>
   <circle cx="249" cy="168" r="3.4" fill="{FLASH}"/>
   <path d="M150,180 C138,182 136,200 140,212 C143,222 152,226 156,218 C160,208 156,198 160,190 C162,184 158,180 150,180 Z"
-        fill="#1A3B49" stroke="#3E6574" stroke-width="1.4"/>
+        fill="{SKIN2}" stroke="{SKIN_LINE}" stroke-width="1.4"/>
   <path d="M8,168 C8,160 14,152 22,150" fill="none" stroke="{MINT}" stroke-width="0"/>
-  <circle cx="{OZ[0]}" cy="{OZ[1]}" r="8" fill="{BG}" stroke="{MINT}" stroke-width="3"/>
+  <circle cx="{OZ[0]}" cy="{OZ[1]}" r="8" fill="#FFFFFF" stroke="{NAVY}" stroke-width="3"/>
   <circle cx="{OZ[0]}" cy="{OZ[1]}" r="3" fill="{MINT}"/>
-  <rect x="{EAR[0] - 6}" y="{EAR[1] - 4}" width="12" height="9" rx="2" fill="#C9D6DA" stroke="#7D97A0"/>
+  <rect x="{EAR[0] - 6}" y="{EAR[1] - 4}" width="12" height="9" rx="2" fill="#FFFFFF" stroke="{NAVY}" stroke-width="1.5"/>
 </g>"""
 
 
@@ -118,14 +123,17 @@ def defs() -> str:
     return f"""
 <defs>
   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
   <filter id="bigglow" x="-100%" y="-100%" width="300%" height="300%">
     <feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <radialGradient id="bgglow" cx="0.78" cy="0.35" r="0.6">
-    <stop offset="0" stop-color="#12343F"/><stop offset="1" stop-color="{BG}"/>
+  <radialGradient id="bgglow" cx="0.8" cy="0.3" r="0.7">
+    <stop offset="0" stop-color="#EEF5FC"/><stop offset="1" stop-color="#FFFFFF"/>
   </radialGradient>
+  <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+    <path d="M24,0 L0,0 0,24" fill="none" stroke="#E6EDF5" stroke-width="1"/>
+  </pattern>
   <linearGradient id="beam" x1="1" y1="0" x2="0" y2="0">
     <stop offset="0" stop-color="{FLASH}" stop-opacity="0.75"/><stop offset="1" stop-color="{FLASH}" stop-opacity="0.04"/>
   </linearGradient>
@@ -136,7 +144,7 @@ def defs() -> str:
     <path d="M0,0 L10,5 L0,10 z" fill="{MUTED}"/>
   </marker>
   <marker id="arrowY" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-    <path d="M0,0 L10,5 L0,10 z" fill="{FLASH}"/>
+    <path d="M0,0 L10,5 L0,10 z" fill="{SKY}"/>
   </marker>
 </defs>"""
 
@@ -147,10 +155,10 @@ def led(x, y, facing="left", s=1.0) -> str:
     hx = x if facing == "left" else x - 56 * s
     return f"""
 <g>
-  <rect x="{hx + (6 if facing == 'left' else 0) * s}" y="{y - 22 * s}" width="{50 * s}" height="{44 * s}" rx="{8 * s}" fill="#22323A" stroke="#4A6670" stroke-width="1.5"/>
+  <rect x="{hx + (6 if facing == 'left' else 0) * s}" y="{y - 22 * s}" width="{50 * s}" height="{44 * s}" rx="{8 * s}" fill="#E8EEF5" stroke="#7F95AD" stroke-width="1.5"/>
   <rect x="{x - (4 if facing == 'left' else -1) * s}" y="{y - 19 * s}" width="{4 * s}" height="{38 * s}" rx="{2 * s}" fill="#FFFFFF" fill-opacity="0.55"/>
   <circle cx="{x + d * 2 * s}" cy="{y}" r="{11 * s}" fill="{FLASH}" filter="url(#bigglow)"/>
-  <circle cx="{x + d * 2 * s}" cy="{y}" r="{6 * s}" fill="#FFF6D6"/>
+  <circle cx="{x + d * 2 * s}" cy="{y}" r="{6 * s}" fill="#E0F6FF"/>
 </g>"""
 
 
@@ -200,40 +208,64 @@ def T(x, y, s, size=14, color=TEXT, weight=400, anchor="start", extra=""):
 # ----------------------------------------------------------------------------- hero
 def hero(x, fs, alpha, trig):
     W, H = 1280, 640
-    tx, ty, s = 1192, 36, 0.96  # head faces left, right edge at tx
+    tx, ty, s = 1190, 30, 0.84  # participant's head, facing left
     eye = local_to_global(EYE, tx, ty, s, True)
     oz = local_to_global(OZ, tx, ty, s, True)
     v1 = local_to_global(V1, tx, ty, s, True)
-    ledx, ledy = 812, eye[1] - 2
-    p_raw, p_al, flashes = eeg_paths(x, fs, alpha, trig, t0=20.0, dur=3.05, x0=-10, x1=1215, yc=505, amp=46, raw_amp=0.55)
-    end_y = float(p_al.split(" L")[-1].split(",")[1])
-    flash_svg = "".join(
-        f'<line x1="{a:.1f}" y1="{b:.1f}" x2="{a:.1f}" y2="{b - 34:.1f}" stroke="{FLASH}" stroke-opacity="0.28" stroke-width="1.6"/>'
-        f'<circle cx="{a:.1f}" cy="{b:.1f}" r="12" fill="{FLASH}" fill-opacity="0.12"/>'
-        f'<circle cx="{a:.1f}" cy="{b:.1f}" r="4.6" fill="{FLASH}" filter="url(#glow)"/>' for a, b in flashes)
+    lgn = local_to_global((140, 162), tx, ty, s, True)
+    ledx, ledy = 790, eye[1] - 2
+
+    # two-track figure: EEG (Oz) and the light stimulus, on a shared time axis
+    x0, x1, t0, dur = 150, 1230, 20.0, 2.4
+    eeg_y, stim_y = 452, 560
+    p_raw, p_al, flashes = eeg_paths(x, fs, alpha, trig, t0=t0, dur=dur, x0=x0, x1=x1, yc=eeg_y, amp=38, raw_amp=0.55)
+    px_per_s = (x1 - x0) / dur
+    pulse_w = 0.020 * px_per_s  # 20 ms pulses
+    guides = "".join(f'<line x1="{a:.1f}" y1="{b + 8:.1f}" x2="{a:.1f}" y2="{stim_y - 14}" stroke="{SKY}" stroke-opacity="0.35" '
+                     f'stroke-width="1" stroke-dasharray="2 3"/>' for a, b in flashes)
+    dots = "".join(f'<circle cx="{a:.1f}" cy="{b:.1f}" r="7" fill="{SKY}" fill-opacity="0.18"/>'
+                   f'<circle cx="{a:.1f}" cy="{b:.1f}" r="3.6" fill="{SKY}" stroke="#FFFFFF" stroke-width="1.2"/>' for a, b in flashes)
+    pulses = "".join(f'<rect x="{a:.1f}" y="{stim_y - 13}" width="{pulse_w:.1f}" height="26" rx="1.5" fill="{SKY}"/>' for a, _ in flashes)
+    sb_x = x1 - 0.2 * px_per_s
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">
 {defs()}
 <rect width="{W}" height="{H}" fill="url(#bgglow)"/>
-<path d="{p_raw}" fill="none" stroke="{MUTED}" stroke-opacity="0.22" stroke-width="1"/>
-<path d="{p_al}" fill="none" stroke="{MINT}" stroke-opacity="0.08" stroke-width="12" stroke-linecap="round"/>
-<path d="{p_al}" fill="none" stroke="{MINT}" stroke-opacity="0.16" stroke-width="6" stroke-linecap="round"/>
-<path d="{p_al}" fill="none" stroke="{MINT}" stroke-width="2.4" stroke-linecap="round"/>
-{flash_svg}
-<path d="M{oz[0]:.1f},{oz[1]:.1f} C{oz[0] + 40:.1f},{oz[1] + 60:.1f} {oz[0] + 50:.1f},{end_y - 60:.1f} 1215,{end_y:.1f}"
-      fill="none" stroke="{MINT}" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>
-<polygon points="{ledx + 10},{ledy - 9} {ledx + 10},{ledy + 9} {eye[0] - 2:.1f},{eye[1] + 16:.1f} {eye[0] - 2:.1f},{eye[1] - 16:.1f}" fill="url(#beamR)"/>
+
+<!-- stimulus beam: LED to the participant's eye -->
+<polygon points="{ledx + 10},{ledy - 9} {ledx + 10},{ledy + 9} {eye[0] - 2:.1f},{eye[1] + 14:.1f} {eye[0] - 2:.1f},{eye[1] - 14:.1f}" fill="url(#beamR)"/>
 {led(ledx, ledy, facing="right", s=1.0)}
 {head_group("hero", tx, ty, s, mirror=True)}
-{T(62, 118, "NeuroBack", 84, TEXT, 700)}
-{T(65, 172, "Closed-loop light stimulation,", 27, TEXT, 400)}
-{T(65, 206, "locked to your alpha rhythm", 27, TEXT, 400)}
-{T(66, 250, "OpenBCI Cyton  ·  ecHT phase tracking  ·  109-person EEG benchmark  ·  PyQt6 app", 14.5, MUTED)}
-{T(ledx - 6, ledy + 44, "LED flash", 13, FLASH, 600, "middle")}
-{T(ledx - 6, ledy + 61, "at the alpha peak", 12, MUTED, 400, "middle")}
-{T(v1[0] - 6, v1[1] - 22, "visual cortex (V1)", 12.5, MINT, 600, "end")}
-{T(oz[0] + 14, oz[1] + 50, "Oz electrode", 12, MUTED, 400, "start")}
-{T(eye[0] + 20, eye[1] + 58, "retina → V1", 12, FLASH, 400, "start")}
-{T(1240, 618, "Real EEG · PhysioNet S004 · Oz  ·  yellow = flashes scheduled causally by ecHT at the alpha peak", 11.5, MUTED, 400, "end")}
+
+<!-- labels: stimulus, participant, brain -->
+{T(ledx - 6, ledy - 46, "VISUAL STIMULUS", 11.5, SKY, 700, "middle", 'letter-spacing="1.5"')}
+{T(ledx - 6, ledy + 50, "20 ms LED flash", 12.5, TEXT, 600, "middle")}
+{T(ledx - 6, ledy + 66, "at the alpha peak", 12, MUTED, 400, "middle")}
+{T(tx - 150 * s, ty + 8, "PARTICIPANT", 11.5, NAVY, 700, "middle", 'letter-spacing="1.5"')}
+{T(v1[0] - 10, v1[1] - 20, "visual cortex (V1)", 12, NAVY, 600, "end")}
+<line x1="{v1[0] - 4:.1f}" y1="{v1[1] - 4:.1f}" x2="{v1[0] - 8:.1f}" y2="{v1[1] - 16:.1f}" stroke="{NAVY}" stroke-opacity="0.5"/>
+{T(lgn[0], lgn[1] + 70, "retina → LGN → V1", 12, SKY, 600, "middle")}
+{T(oz[0] + 14, oz[1] + 5, "Oz", 12, NAVY, 700, "start")}
+
+<!-- closed loop connectors -->
+<path d="M{oz[0]:.1f},{oz[1] + 9:.1f} C{oz[0] + 26:.1f},{oz[1] + 120:.1f} {x1 + 18},{eeg_y - 120} {x1 + 4},{eeg_y - 10}"
+      fill="none" stroke="{NAVY}" stroke-width="1.6" stroke-dasharray="3 4" marker-end="url(#arrow)"/>
+
+<!-- title -->
+{T(60, 108, "NeuroBack", 78, NAVY, 700)}
+{T(63, 160, "Closed-loop visual stimulation", 27, TEXT, 400)}
+{T(63, 194, "phase-locked to the EEG alpha rhythm", 27, TEXT, 400)}
+{T(64, 236, "OpenBCI Cyton · ecHT phase tracking · 109-subject EEG benchmark · Python", 14, MUTED)}
+
+<!-- tracks -->
+{T(60, eeg_y - 4, "EEG", 13, TEXT, 700)}{T(60, eeg_y + 13, "Oz, 8–13 Hz", 11, MUTED)}
+{T(60, stim_y - 4, "Stimulus", 13, TEXT, 700)}{T(60, stim_y + 13, "LED pulses", 11, MUTED)}
+<line x1="{x0}" y1="{stim_y + 13}" x2="{x1}" y2="{stim_y + 13}" stroke="{BORDER}" stroke-width="1"/>
+<path d="{p_raw}" fill="none" stroke="#9FB1C4" stroke-opacity="0.7" stroke-width="1"/>
+<path d="{p_al}" fill="none" stroke="{NAVY}" stroke-width="2.2" stroke-linecap="round"/>
+{guides}{dots}{pulses}
+<line x1="{sb_x:.1f}" y1="{stim_y + 34}" x2="{x1}" y2="{stim_y + 34}" stroke="{TEXT}" stroke-width="2"/>
+{T((sb_x + x1) / 2, stim_y + 52, "200 ms", 11, MUTED, 400, "middle")}
+{T(x0, 622, "Real EEG (PhysioNet S004, Oz). Each flash was scheduled causally by the ecHT closed loop, aimed at the alpha peak.", 11, MUTED)}
 </svg>"""
     render(svg, W, H, ASSETS / "hero.png", scale=2.0)
     render(svg, W, H, ASSETS / "social-preview.png", scale=1.0)
@@ -246,7 +278,7 @@ def cyton(cx, cy, r=86):
     pins = "".join(f'<circle cx="{cx - 52 + i * 11.5:.1f}" cy="{cy - 62}" r="2.6" fill="#D8B45A"/>' for i in range(10))
     return f"""
 <g>
-  <polygon points="{pts}" fill="#E3ECEE" stroke="#9FB6BD" stroke-width="2"/>
+  <polygon points="{pts}" fill="#F7FAFC" stroke="#8FA3B8" stroke-width="2"/>
   <rect x="{cx - 60}" y="{cy - 70}" width="120" height="16" rx="3" fill="#1B2A30"/>{pins}
   <rect x="{cx - 26}" y="{cy - 22}" width="46" height="46" rx="4" fill="#1B2A30"/>
   <rect x="{cx - 19}" y="{cy - 15}" width="32" height="32" rx="3" fill="#24363D"/>
@@ -254,7 +286,7 @@ def cyton(cx, cy, r=86):
   <rect x="{cx - 56}" y="{cy + 34}" width="22" height="12" rx="2" fill="#1B2A30"/>
   <circle cx="{cx - 50}" cy="{cy}" r="9" fill="none" stroke="#9FB6BD" stroke-width="1.5"/>
   <circle cx="{cx + 50}" cy="{cy + 46}" r="5" fill="none" stroke="#9FB6BD" stroke-width="1.5"/>
-  {T(cx, cy + 66, "OpenBCI", 11, "#3A5560", 700, "middle")}
+  {T(cx, cy + 66, "OpenBCI", 11, "#5B6F86", 700, "middle")}
 </g>"""
 
 
@@ -274,44 +306,46 @@ def arduino(x, y, w=176, h=108):
 
 
 def laptop(x, y, w, h, x_eeg, fs, alpha, trig, overhang=34):
-    p_raw, p_al, flashes = eeg_paths(x_eeg, fs, alpha, trig, t0=31.0, dur=1.6, x0=x + 22, x1=x + 240, yc=y + 118, amp=34, raw_amp=0.6)
-    dots = "".join(f'<circle cx="{a:.1f}" cy="{b:.1f}" r="3.4" fill="{FLASH}"/>' for a, b in flashes)
+    p_raw, p_al, flashes = eeg_paths(x_eeg, fs, alpha, trig, t0=31.0, dur=1.6, x0=x + 22, x1=x + 240, yc=y + 112, amp=30, raw_amp=0.6)
+    dots = "".join(f'<circle cx="{a:.1f}" cy="{b:.1f}" r="3.2" fill="{SKY}" stroke="#FFFFFF" stroke-width="1"/>' for a, b in flashes)
+    pulses = "".join(f'<rect x="{a - 1.5:.1f}" y="{y + 168}" width="3.5" height="12" rx="1" fill="{SKY}"/>' for a, _ in flashes)
     dc = (x + 318, y + 118)
     hits = "".join(
-        f'<circle cx="{dc[0] + 44 * math.sin(math.radians(a)):.1f}" cy="{dc[1] - 44 * math.cos(math.radians(a)):.1f}" r="2.6" fill="{FLASH}" fill-opacity="0.85"/>'
+        f'<circle cx="{dc[0] + 44 * math.sin(math.radians(a)):.1f}" cy="{dc[1] - 44 * math.cos(math.radians(a)):.1f}" r="2.6" fill="{SKY}"/>'
         for a in np.random.default_rng(2).normal(4, 22, 24))
     return f"""
 <g>
-  <rect x="{x - 8}" y="{y - 8}" width="{w + 16}" height="{h + 16}" rx="12" fill="#1A2830" stroke="#4A6670" stroke-width="2"/>
-  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="{BG}"/>
-  <rect x="{x}" y="{y}" width="{w}" height="30" fill="{PANEL}"/>
-  {T(x + 14, y + 20, "NeuroBack", 13, TEXT, 700)}
-  <rect x="{x + 96}" y="{y + 8}" width="92" height="15" rx="7" fill="{PANEL2}" stroke="{BORDER}"/>
+  <rect x="{x - 8}" y="{y - 8}" width="{w + 16}" height="{h + 16}" rx="12" fill="#DDE5EE" stroke="#8FA3B8" stroke-width="2"/>
+  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="#F6F8FB"/>
+  <rect x="{x}" y="{y}" width="{w}" height="30" fill="#FFFFFF"/>
+  <line x1="{x}" y1="{y + 30}" x2="{x + w}" y2="{y + 30}" stroke="{BORDER}"/>
+  {T(x + 14, y + 20, "NeuroBack", 13, NAVY, 700)}
+  <rect x="{x + 96}" y="{y + 8}" width="92" height="15" rx="7" fill="{PANEL2}"/>
   {T(x + 142, y + 19, "Cyton · 250 Hz", 9, MUTED, 400, "middle")}
   <rect x="{x + w - 58}" y="{y + 7}" width="46" height="17" rx="5" fill="{RED}"/>
   {T(x + w - 35, y + 19, "STOP", 9.5, "#FFFFFF", 700, "middle")}
-  <rect x="{x + 14}" y="{y + 44}" width="236" height="150" rx="6" fill="{PANEL}" stroke="{BORDER}"/>
-  <path d="{p_raw}" fill="none" stroke="{MUTED}" stroke-opacity="0.4" stroke-width="0.9"/>
-  <path d="{p_al}" fill="none" stroke="{MINT}" stroke-width="2"/>{dots}
-  <circle cx="{dc[0]}" cy="{dc[1]}" r="52" fill="{PANEL}" stroke="{BORDER}" stroke-width="2"/>
-  <path d="M{dc[0]},{dc[1]} L{dc[0] - 52 * math.sin(math.radians(20)):.1f},{dc[1] - 52 * math.cos(math.radians(20)):.1f} A52,52 0 0,1 {dc[0] + 52 * math.sin(math.radians(20)):.1f},{dc[1] - 52 * math.cos(math.radians(20)):.1f} Z" fill="{MINT}" fill-opacity="0.25"/>
+  <rect x="{x + 14}" y="{y + 44}" width="236" height="150" rx="6" fill="#FFFFFF" stroke="{BORDER}"/>
+  <path d="{p_raw}" fill="none" stroke="#A9B8C8" stroke-width="0.9"/>
+  <path d="{p_al}" fill="none" stroke="{NAVY}" stroke-width="1.8"/>{dots}{pulses}
+  <circle cx="{dc[0]}" cy="{dc[1]}" r="52" fill="#FFFFFF" stroke="{BORDER}" stroke-width="2"/>
+  <path d="M{dc[0]},{dc[1]} L{dc[0] - 52 * math.sin(math.radians(20)):.1f},{dc[1] - 52 * math.cos(math.radians(20)):.1f} A52,52 0 0,1 {dc[0] + 52 * math.sin(math.radians(20)):.1f},{dc[1] - 52 * math.cos(math.radians(20)):.1f} Z" fill="{BLUE}" fill-opacity="0.18"/>
   {hits}
-  <line x1="{dc[0]}" y1="{dc[1]}" x2="{dc[0] + 34}" y2="{dc[1] + 14}" stroke="{TEXT}" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="{dc[0]}" cy="{dc[1]}" r="4" fill="{MINT}"/>
+  <line x1="{dc[0]}" y1="{dc[1]}" x2="{dc[0] + 34}" y2="{dc[1] + 14}" stroke="{NAVY}" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="{dc[0]}" cy="{dc[1]}" r="4" fill="{NAVY}"/>
   {T(dc[0], dc[1] - 58, "0° peak", 9, MUTED, 400, "middle")}
-  {"".join(f'<rect x="{x + 14 + i * 98}" y="{y + 206}" width="90" height="40" rx="6" fill="{PANEL}" stroke="{BORDER}"/>' for i in range(4))}
+  {"".join(f'<rect x="{x + 14 + i * 98}" y="{y + 206}" width="90" height="40" rx="6" fill="#FFFFFF" stroke="{BORDER}"/>' for i in range(4))}
   {T(x + 22, y + 220, "IAF", 8.5, MUTED)}{T(x + 22, y + 238, "10.7 Hz", 14, TEXT, 600)}
   {T(x + 120, y + 220, "PHASE LOCKING", 8.5, MUTED)}{T(x + 120, y + 238, "0.95", 14, TEXT, 600)}
   {T(x + 218, y + 220, "FLASHES / S", 8.5, MUTED)}{T(x + 218, y + 238, "9.1", 14, TEXT, 600)}
   {T(x + 316, y + 220, "MEAN ERROR", 8.5, MUTED)}{T(x + 316, y + 238, "+4°", 14, TEXT, 600)}
-  <path d="M{x - overhang},{y + h + 26} L{x - 8},{y + h + 8} L{x + w + 8},{y + h + 8} L{x + w + overhang},{y + h + 26} Z" fill="#22323A" stroke="#4A6670" stroke-width="2"/>
-  <rect x="{x + w / 2 - 50}" y="{y + h + 12}" width="100" height="6" rx="3" fill="#3A4E57"/>
+  <path d="M{x - overhang},{y + h + 26} L{x - 8},{y + h + 8} L{x + w + 8},{y + h + 8} L{x + w + overhang},{y + h + 26} Z" fill="#DDE5EE" stroke="#8FA3B8" stroke-width="2"/>
+  <rect x="{x + w / 2 - 50}" y="{y + h + 12}" width="100" height="6" rx="3" fill="#B8C6D4"/>
 </g>"""
 
 
 def callout(n, x, y):
-    return (f'<circle cx="{x}" cy="{y}" r="14" fill="{BG}" stroke="{TEXT}" stroke-width="1.8"/>'
-            + T(x, y + 5, str(n), 14, TEXT, 700, "middle"))
+    return (f'<circle cx="{x}" cy="{y}" r="14" fill="{NAVY}"/>'
+            + T(x, y + 5, str(n), 13.5, "#FFFFFF", 700, "middle"))
 
 
 LEGEND = [
@@ -348,11 +382,12 @@ def hardware(x, fs, alpha, trig):
 
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">
 {defs()}
-<rect width="{W}" height="{H}" fill="{BG}"/>
+<rect width="{W}" height="{H}" fill="#FFFFFF"/>
+<rect width="{W}" height="{H}" fill="url(#grid)" opacity="0.6"/>
 <rect x="1400" y="130" width="370" height="730" rx="14" fill="{PANEL}" stroke="{BORDER}"/>
 {T(1430, 166, "THE CLOSED LOOP", 12, MUTED, 700, "start", 'letter-spacing="2"')}
 {legend}
-{T(60, 70, "How NeuroBack is wired", 36, TEXT, 700)}
+{T(60, 70, "How NeuroBack is wired", 36, NAVY, 700)}
 {T(62, 104, "One loop per alpha cycle: brain → EEG → laptop → Arduino → light → eyes → brain", 17, MUTED)}
 
 <!-- light beam to the eye -->
@@ -374,17 +409,17 @@ def hardware(x, fs, alpha, trig):
 
 <!-- electrode wires to the Cyton -->
 <path d="M{oz[0]:.1f},{oz[1] + 8:.1f} C{oz[0] - 50:.1f},{oz[1] + 150:.1f} 170,{cy_c[1] - 160} {cy_c[0] - 20},{cy_c[1] - 70}" fill="none" stroke="{MINT}" stroke-width="3"/>
-<path d="M{ear[0]:.1f},{ear[1] + 6:.1f} C{ear[0] - 10:.1f},{ear[1] + 110:.1f} {cy_c[0] + 30},{cy_c[1] - 150} {cy_c[0] + 20},{cy_c[1] - 70}" fill="none" stroke="#C9D6DA" stroke-width="3"/>
+<path d="M{ear[0]:.1f},{ear[1] + 6:.1f} C{ear[0] - 10:.1f},{ear[1] + 110:.1f} {cy_c[0] + 30},{cy_c[1] - 150} {cy_c[0] + 20},{cy_c[1] - 70}" fill="none" stroke="#8FA3B8" stroke-width="3"/>
 {cyton(*cy_c)}
 {T(cy_c[0], cy_c[1] + 112, "OpenBCI Cyton", 15, TEXT, 600, "middle")}
 {T(cy_c[0], cy_c[1] + 131, "8 ch · 24-bit · 250 Hz", 12, MUTED, 400, "middle")}
 
 <!-- LED on its stand + Arduino -->
-<rect x="{ledx + 22}" y="{ledy + 22}" width="8" height="{ard[1] - ledy - 52}" fill="#2C3E46"/>
-<rect x="{ledx - 12}" y="{ard[1] - 30}" width="80" height="10" rx="4" fill="#2C3E46"/>
+<rect x="{ledx + 22}" y="{ledy + 22}" width="8" height="{ard[1] - ledy - 52}" fill="#AEBCCB"/>
+<rect x="{ledx - 12}" y="{ard[1] - 30}" width="80" height="10" rx="4" fill="#AEBCCB"/>
 {led(ledx, ledy, "left", 1.0)}
 <path d="M{ard[0] + 40},{ard[1]} C{ard[0] + 40},{ard[1] - 60} {ledx + 50},{ledy + 120} {ledx + 30},{ledy + 24}" fill="none" stroke="{RED}" stroke-width="2.4"/>
-<path d="M{ard[0] + 52},{ard[1]} C{ard[0] + 52},{ard[1] - 50} {ledx + 58},{ledy + 130} {ledx + 34},{ledy + 24}" fill="none" stroke="#9AA9AF" stroke-width="2.4"/>
+<path d="M{ard[0] + 52},{ard[1]} C{ard[0] + 52},{ard[1] - 50} {ledx + 58},{ledy + 130} {ledx + 34},{ledy + 24}" fill="none" stroke="#5B6F86" stroke-width="2.4"/>
 {T(ledx + 8, ledy + 150, "pin 9", 12, MUTED, 400, "end")}
 {T(ledx + 8, ledy + 166, "20 ms pulse", 12, MUTED, 400, "end")}
 {arduino(*ard)}
@@ -397,7 +432,7 @@ def hardware(x, fs, alpha, trig):
 {T(lap[0] + lap[2] / 2, base_y + 136, "BrainFlow · ecHT phase tracking · sub-ms scheduler", 12, MUTED, 400, "middle")}
 
 <!-- dongle plugged into the laptop + RF link -->
-<rect x="{dongle[0]}" y="{dongle[1]}" width="44" height="16" rx="3" fill="#E3ECEE" stroke="#9FB6BD"/>
+<rect x="{dongle[0]}" y="{dongle[1]}" width="44" height="16" rx="3" fill="#F7FAFC" stroke="#8FA3B8"/>
 <rect x="{dongle[0] + 44}" y="{dongle[1] + 4}" width="12" height="8" fill="#B9C4C9"/>
 <circle cx="{dongle[0] + 10}" cy="{dongle[1] + 8}" r="2.5" fill="{BLUE}"/>
 {T(dongle[0] + 30, dongle[1] - 12, "USB dongle", 12, MUTED, 400, "middle")}
@@ -406,7 +441,7 @@ def hardware(x, fs, alpha, trig):
 {T(610, cy_c[1] + 132, "2.4 GHz radio · EEG samples at 250 Hz", 13, BLUE, 600, "middle")}
 
 <!-- Arduino -> laptop USB serial -->
-<path d="M{ard[0] + 194},{ard[1] + 48} C{ard[0] + 260},{ard[1] + 48} {lap[0]},{base_y + 82} {lap[0] + 80},{base_y + 26}" fill="none" stroke="#C9D6DA" stroke-width="3"/>
+<path d="M{ard[0] + 194},{ard[1] + 48} C{ard[0] + 260},{ard[1] + 48} {lap[0]},{base_y + 82} {lap[0] + 80},{base_y + 26}" fill="none" stroke="#7F95AD" stroke-width="3"/>
 {T(958, base_y + 87, "USB serial · byte 'F' = flash", 12.5, TEXT, 600)}
 
 {callout(1, oz[0] - 22, oz[1] + 40)}

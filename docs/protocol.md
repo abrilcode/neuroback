@@ -26,7 +26,7 @@ Defaults live in `src/neuroback/protocol.py`.
 - **Order:** every condition appears once per repeat, in random order; 4 repeats by default.
 - **Outcome:** alpha power (IAF ± 2 Hz) in the stimulus-free gap after each block, where there is no steady-state visual response. On-block power is stored too, but it is contaminated by that response.
 - **Test:** a permutation test (5,000 shuffles of phase labels) on a cosine fit across the four target phases gives a p-value and a preferred phase.
-- **Controls:** these tell you whether any change is specific to phase. If open-loop flicker changes alpha as much as the best phase, the effect is flicker, not phase.
+- **Controls:** these show whether any change is specific to phase. If open-loop flicker changes alpha as much as the best phase, the effect is flicker, not phase.
 
 **Good practice for a real study**
 - Preregister the primary outcome.

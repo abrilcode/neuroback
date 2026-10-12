@@ -37,8 +37,11 @@ from neuroback.phase import EcHT  # noqa: E402
 
 FIG = ROOT / "docs" / "figures"
 ASSETS = ROOT / "assets"
-BG, PANEL, BORDER, TEXT, MUTED = "#0A1820", "#10232C", "#21404D", "#E7F1F3", "#8BA6AF"
-MINT, FLASH, RED, BLUE = "#6AFFA4", "#FFD166", "#FF5C61", "#5AB4FF"
+# Light, journal-style theme with a blue scale (darker = better / stronger evidence).
+BG, PANEL, BORDER, TEXT, MUTED = "#FFFFFF", "#F4F7FB", "#D5DEE8", "#0F2742", "#5B6F86"
+NAVY, BLUE, SKY, PALE, GREY = "#0B3C7A", "#3A7FC1", "#0EA5E9", "#8DB4D9", "#B3C0CE"
+STIM = SKY  # light stimulus
+MINT, FLASH, RED = NAVY, SKY, "#C2412D"  # legacy names kept for the helpers below
 METHODS = ["2023 rule, as shipped", "2023 rule, fixed input", "AR forecast", "ecHT"]
 LABELS = {
     "2023 rule, as shipped": "2023 code\nas shipped",
@@ -46,16 +49,21 @@ LABELS = {
     "AR forecast": "AR forecast\n(phastimate-style)",
     "ecHT": "ecHT\n(NeuroBack 2026)",
 }
-COLORS = dict(zip(METHODS, [RED, MUTED, BLUE, MINT]))
+COLORS = dict(zip(METHODS, [GREY, PALE, BLUE, NAVY]))
 
 _fonts = {f.name for f in font_manager.fontManager.ttflist}
-FONT = next((f for f in ("Avenir Next", "Inter", "Helvetica Neue", "DejaVu Sans") if f in _fonts), "DejaVu Sans")
+FONT = next((f for f in ("Helvetica Neue", "Helvetica", "Inter", "DejaVu Sans") if f in _fonts), "DejaVu Sans")
 plt.rcParams.update({
     "font.family": FONT, "font.size": 11, "text.color": TEXT, "axes.labelcolor": MUTED,
-    "xtick.color": MUTED, "ytick.color": MUTED, "axes.edgecolor": BORDER, "axes.facecolor": BG,
+    "xtick.color": MUTED, "ytick.color": MUTED, "axes.edgecolor": "#9AA8B8", "axes.facecolor": BG,
     "figure.facecolor": BG, "savefig.facecolor": BG, "axes.titleweight": "semibold", "axes.titlesize": 13,
-    "axes.spines.top": False, "axes.spines.right": False, "grid.color": BORDER, "grid.alpha": 0.6,
+    "axes.spines.top": False, "axes.spines.right": False, "grid.color": "#E3E9F0", "grid.alpha": 1.0,
+    "axes.linewidth": 0.9, "xtick.major.width": 0.9, "ytick.major.width": 0.9,
 })
+
+
+def _panel(fig, x, y, letter):
+    fig.text(x, y, letter, fontsize=15, weight="bold", color=TEXT, va="top")
 
 
 def _title(fig, title, sub=None):
@@ -81,14 +89,14 @@ def fig_benchmark(res: dict, pooled: dict):
            "streamed live in 4-sample (16 ms) chunks.")
     for i, m in enumerate(METHODS):
         ax = fig.add_axes([0.035 + i * 0.245, 0.13, 0.19, 0.56], projection="polar")
-        ax.set_facecolor(PANEL)
+        ax.set_facecolor("#FAFCFE")
         ax.set_theta_zero_location("N")
         ax.set_theta_direction(-1)
         err = np.radians(pooled[m].astype(float))
         bins = np.linspace(-np.pi, np.pi, 37)
         h, _ = np.histogram(err, bins)
         h = h / h.sum()
-        ax.bar(bins[:-1] + np.diff(bins) / 2, h, width=np.diff(bins), color=COLORS[m], alpha=0.9, edgecolor=BG, linewidth=0.5)
+        ax.bar(bins[:-1] + np.diff(bins) / 2, h, width=np.diff(bins), color=COLORS[m], alpha=0.95, edgecolor="white", linewidth=0.6)
         ax.set_ylim(0, 0.16)
         ax.set_yticks([])
         ax.set_xticks(np.radians([0, 90, 180, 270]))
@@ -98,8 +106,8 @@ def fig_benchmark(res: dict, pooled: dict):
         med = np.median([r[m]["plv"] for r in rows])
         sd = np.median([r[m]["circ_sd_deg"] for r in rows])
         cx = 0.035 + i * 0.245 + 0.095
-        fig.text(cx, 0.775, LABELS[m].replace("\n", " "), ha="center", color=COLORS[m] if m != METHODS[1] else TEXT,
-                 fontsize=12.5, weight="semibold")
+        fig.text(cx, 0.775, LABELS[m].replace("\n", " "), ha="center", color=TEXT, fontsize=12.5, weight="semibold")
+        fig.add_artist(plt.Line2D([cx - 0.055, cx + 0.055], [0.762, 0.762], color=COLORS[m], lw=4, transform=fig.transFigure))
         fig.text(cx, 0.04, f"phase-locking {med:.2f}   ·   spread ±{sd:.0f}°", ha="center", color=TEXT, fontsize=11)
     fig.savefig(FIG / "benchmark-polar.png", dpi=160)
     plt.close(fig)
@@ -115,7 +123,7 @@ def fig_benchmark_subjects(res: dict):
     vals = [np.array([r[m]["plv"] for r in rows]) for m in METHODS]
     for i, (m, v) in enumerate(zip(METHODS, vals)):
         ax.scatter(i + rng.uniform(-0.12, 0.12, len(v)), v, s=11, color=COLORS[m], alpha=0.8, zorder=2, linewidths=0)
-        ax.plot([i - 0.25, i + 0.25], [np.median(v)] * 2, color=TEXT, lw=2.5, zorder=3)
+        ax.plot([i - 0.25, i + 0.25], [np.median(v)] * 2, color=TEXT, lw=2.2, zorder=3)
         ax.text(i, 1.03, f"{np.median(v):.2f}", ha="center", color=TEXT, fontsize=11, weight="semibold")
     ax.set_xticks(range(4))
     ax.set_xticklabels([LABELS[m] for m in METHODS], fontsize=9.5)
@@ -125,6 +133,8 @@ def fig_benchmark_subjects(res: dict):
     better = int(np.sum(vals[3] > vals[1]))
     ax.text(2.5, 0.06, f"ecHT > 2023 rule in {better}/{len(rows)} people", ha="center", color=MUTED, fontsize=9.5)
 
+    _panel(fig, 0.015, 0.83, "a")
+    _panel(fig, 0.615, 0.83, "b")
     ax2 = fig.add_axes([0.66, 0.16, 0.31, 0.62])
     q = np.arange(4)
     for m in METHODS:
@@ -152,16 +162,18 @@ def fig_legacy_filter():
     _title(fig, "Why the 2023 phase detector drifted", "Its band-pass (PAF ± 1 Hz, causal Butterworth) shifts phase by ±90° "
            "when alpha is only 1 Hz away from the calibrated frequency, and delays the signal by ~0.2 s.")
     ax = fig.add_axes([0.06, 0.14, 0.4, 0.62])
-    ax.plot(f - f0, np.degrees(np.angle(h)), color=RED, lw=2.5)
+    ax.plot(f - f0, np.degrees(np.angle(h)), color=NAVY, lw=2.4)
     ax.axhline(0, color=BORDER)
-    ax.axvspan(-0.67, 0.67, color=FLASH, alpha=0.12)
-    ax.text(0, -120, "2023 PAF grid could be\noff by up to ±0.67 Hz", ha="center", color=FLASH, fontsize=9)
+    ax.axvspan(-0.67, 0.67, color=PALE, alpha=0.25)
+    ax.text(0, -120, "2023 PAF grid could be\noff by up to ±0.67 Hz", ha="center", color=BLUE, fontsize=9)
     ax.set_xlabel("alpha frequency minus filter centre (Hz)")
     ax.set_ylabel("phase error introduced (°)")
     ax.set_ylim(-150, 150)
     ax.grid()
+    _panel(fig, 0.012, 0.8, "a")
+    _panel(fig, 0.512, 0.8, "b")
     ax2 = fig.add_axes([0.56, 0.14, 0.4, 0.62])
-    ax2.plot(f - f0, gd / fs * 1000, color=RED, lw=2.5)
+    ax2.plot(f - f0, gd / fs * 1000, color=NAVY, lw=2.4)
     ax2.axhline(100, color=MUTED, ls="--", lw=1)
     ax2.text(-1.9, 108, "one alpha cycle (100 ms)", color=MUTED, fontsize=9)
     ax2.set_xlabel("alpha frequency minus filter centre (Hz)")
@@ -178,20 +190,20 @@ def fig_jitter_budget():
     _title(fig, "Timing is phase", "Each millisecond of timing error is 2.9–4.7° of alpha phase (8–13 Hz). "
            "Points: jitter measured by Knierim et al. (2023), Sensors 23:4559.")
     ax = fig.add_axes([0.06, 0.14, 0.58, 0.62])
-    for f, c in ((8, BLUE), (10, MINT), (13, FLASH)):
+    for f, c in ((8, PALE), (10, BLUE), (13, NAVY)):
         ax.plot(jit, 360 * f * jit / 1000, color=c, lw=2.4, label=f"{f} Hz alpha")
     for x, lab, off in ((2.10, "OpenBCI Cyton, FTDI fix,\n250 Hz: 2.1 ms", (3.4, 4)),
                         (1.17, "research amplifier\n(Smarting Mobi): 1.2 ms", (0.4, 26))):
         y = 360 * 10 * x / 1000
-        ax.scatter([x], [y], color=TEXT, s=40, zorder=3)
+        ax.scatter([x], [y], color=SKY, s=46, zorder=3, edgecolor="white")
         ax.annotate(lab, (x, y), off, color=TEXT, fontsize=9, arrowprops=dict(arrowstyle="-", color=MUTED))
     ax.set_xlabel("timing jitter (ms)")
     ax.set_ylabel("phase error (°)")
     ax.legend(frameon=False, labelcolor=TEXT, loc="upper left")
     ax.grid()
-    ax.text(1.04, 0.95, "Before you trust a closed loop", transform=ax.transAxes, color=TEXT, weight="semibold", fontsize=11)
+    ax.text(1.04, 0.95, "Before trusting a closed loop", transform=ax.transAxes, color=TEXT, weight="semibold", fontsize=11)
     tips = ["Set the FTDI latency timer to 1 ms: default", "  buffering adds ~330 ms lag (Knierim 2023),",
-            "  over three alpha cycles", "Measure your output latency with a photodiode", "  and pass it as --latency-ms",
+            "  over three alpha cycles", "Measure the output latency with a photodiode", "  and pass it as --latency-ms",
             "NeuroBack uses every sample, refines each flash", "  time per chunk and schedules it to <1 ms"]
     for i, t in enumerate(tips):
         ax.text(1.04, 0.83 - i * 0.1, ("• " if not t.startswith("  ") else "   ") + t.strip(), transform=ax.transAxes,
@@ -213,13 +225,13 @@ def fig_legacy_audit(csv_path: Path):
            "Every save re-wrote the whole buffer (np.delete's result was discarded), so each 20 s delay block filled ~12,900 rows. "
            "The analysis read 5,000 rows per delay.")
     ax = fig.add_axes([0.07, 0.14, 0.88, 0.6])
-    cols = [MINT, BLUE, FLASH]
+    cols = [NAVY, BLUE, PALE]
     for b in range(3):
         m = blk == b
         ax.scatter(np.where(m)[0], ts[m], s=1, color=cols[b], label=f"delay block {b} (actual data)")
     for i in range(3):
         ax.axvspan(i * 5000, (i + 1) * 5000, ymin=0.92, ymax=1.0, color=cols[i], alpha=0.85)
-        ax.text(i * 5000 + 2500, ts.max() * 1.035, f"read as delay {i}", ha="center", color=BG, fontsize=8.5, weight="semibold")
+        ax.text(i * 5000 + 2500, ts.max() * 1.035, f"read as delay {i}", ha="center", color="white" if i < 2 else TEXT, fontsize=8.5, weight="semibold")
     ax.set_xlabel("row in EV-EEG*.csv")
     ax.set_ylabel("sample timestamp (s)")
     ax.set_ylim(0, ts.max() * 1.09)
@@ -257,9 +269,9 @@ def fig_evidence():
     ax.set_xlim(-0.4, 2.1)
     for i, (lab, est, lo, hi, grp, src) in enumerate(EVIDENCE):
         y = n - 1 - i + (0.6 if grp == "sham" else 0)
-        c = MINT if grp == "sham" else FLASH
+        c = NAVY if grp == "sham" else PALE
         ax.plot([lo, hi], [y, y], color=c, lw=2.2, solid_capstyle="round")
-        ax.scatter([est], [y], s=60, color=c, zorder=3, edgecolor=BG)
+        ax.scatter([est], [y], s=58, color=c, zorder=3, edgecolor="white", marker="s")
         yy = ax.transData.transform((0, y))[1]
         yf = fig.transFigure.inverted().transform((0, yy))[1]
         fig.text(0.325, yf, lab, ha="right", va="center", color=TEXT, fontsize=10)
@@ -269,7 +281,7 @@ def fig_evidence():
     ax.set_yticks([])
     ax.set_xlabel("standardised effect size")
     ax.grid(axis="x")
-    for y, lab, c in ((n + 0.05, "SHAM-CONTROLLED", MINT), (3.9, "WAITLIST / NO-FEEDBACK / MIXED CONTROLS", FLASH)):
+    for y, lab, c in ((n + 0.05, "SHAM-CONTROLLED", NAVY), (3.9, "WAITLIST / NO-FEEDBACK / MIXED CONTROLS", BLUE)):
         yf = fig.transFigure.inverted().transform(ax.transData.transform((0, y)))[1]
         fig.text(0.325, yf, lab, ha="right", va="center", color=c, fontsize=9, weight="semibold")
     fig.savefig(FIG / "evidence-map.png", dpi=160)
@@ -294,8 +306,8 @@ def demo_gif(seconds=6.0, fps=12):
     ax = fig.add_axes([0.03, 0.17, 0.6, 0.66])
     axp = fig.add_axes([0.69, 0.1, 0.27, 0.7], projection="polar")
     fig.text(0.03, 0.92, "Closed loop on real EEG", color=TEXT, fontsize=13, weight="semibold")
-    fig.text(0.03, 0.865, "grey: raw Oz · mint: alpha · yellow: flash, aimed at the peak", color=MUTED, fontsize=9)
-    raw_l, = ax.plot([], [], color=MUTED, lw=0.8, alpha=0.5)
+    fig.text(0.03, 0.865, "grey: raw EEG (Oz) · navy: alpha band · blue: flash, aimed at the peak", color=MUTED, fontsize=9)
+    raw_l, = ax.plot([], [], color=GREY, lw=0.8, alpha=0.9)
     al_l, = ax.plot([], [], color=MINT, lw=2)
     fl = ax.scatter([], [], s=60, color=FLASH, zorder=4)
     ax.set_ylim(-60, 60)

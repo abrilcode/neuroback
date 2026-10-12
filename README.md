@@ -1,17 +1,20 @@
 <p align="center">
-  <img src="assets/hero.png" alt="NeuroBack: closed-loop light stimulation locked to the alpha rhythm, shown on real EEG" width="100%">
+  <img src="assets/hero.png" alt="NeuroBack: closed-loop visual stimulation phase-locked to the EEG alpha rhythm. A participant receives LED flashes at the alpha peak; EEG and stimulus tracks shown on real data" width="100%">
 </p>
 
 <p align="center">
+  <a href="https://abrilcode.github.io/neuroback/demo/"><img src="https://img.shields.io/badge/live%20demo-open%20in%20browser-0EA5E9" alt="Live demo"></a>
   <a href="https://github.com/abrilcode/neuroback/actions/workflows/ci.yml"><img src="https://github.com/abrilcode/neuroback/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/python-3.10%E2%80%933.13-3776AB" alt="Python 3.10–3.13">
-  <img src="https://img.shields.io/badge/hardware-OpenBCI%20Cyton%20%2B%20Arduino-6AFFA4" alt="OpenBCI Cyton + Arduino">
-  <img src="https://img.shields.io/badge/benchmark-109%20people%2C%20real%20EEG-FFD166" alt="Benchmark on 109 people">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8BA6AF" alt="MIT licence"></a>
-  <img src="https://img.shields.io/badge/not%20a-medical%20device-FF5C61" alt="Not a medical device">
+  <img src="https://img.shields.io/badge/python-3.10%E2%80%933.13-0B3C7A" alt="Python 3.10–3.13">
+  <img src="https://img.shields.io/badge/hardware-OpenBCI%20Cyton%20%2B%20Arduino-3A7FC1" alt="OpenBCI Cyton + Arduino">
+  <img src="https://img.shields.io/badge/benchmark-109%20subjects%2C%20real%20EEG-3A7FC1" alt="Benchmark on 109 subjects">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8DB4D9" alt="MIT licence"></a>
+  <img src="https://img.shields.io/badge/not%20a-medical%20device-C2412D" alt="Not a medical device">
 </p>
 
-**NeuroBack reads your brain's alpha rhythm in real time and flashes a light at a chosen point of every cycle.** It's an open-source, closed-loop EEG system for the OpenBCI Cyton. Research groups (PLOS Biology 2024) and consumer sleep headbands (Elemind) use the same technique, phase-locked sensory stimulation.
+**NeuroBack tracks the brain's alpha rhythm in real time and delivers a light flash at a chosen phase of every cycle.** It is an open-source, closed-loop EEG system for the OpenBCI Cyton. Research groups (PLOS Biology 2024) and consumer sleep headbands (Elemind) use the same technique, phase-locked sensory stimulation.
+
+**[Open the live demo →](https://abrilcode.github.io/neuroback/demo/)** It runs in the browser on recorded EEG, with flash times computed by the real engine. No installation needed.
 
 It started as a 2023 university project at ITBA (Buenos Aires) that reproduced Huang et al. (2019). In 2026 it was rebuilt from the ground up:
 - **Modern phase tracking:** the endpoint-corrected Hilbert transform.
@@ -38,7 +41,8 @@ It started as a 2023 university project at ITBA (Buenos Aires) that reproduced H
   - Stimulation stays locked until photosensitivity screening and consent are recorded, and there is an Esc emergency stop.
   - Participants exist only as random pseudonyms, and every SQL query is parameterised.
   - "Delete participant" removes everything.
-- **Runs without hardware.** Simulated alpha, playback of public EEG, or BrainFlow's synthetic board, with 30+ tests and CI.
+- **Runs without hardware.** Simulated alpha, playback of public EEG, BrainFlow's synthetic board, or the [online demo](https://abrilcode.github.io/neuroback/demo/); 38 tests and CI.
+- **Modern interface, Python timing.** A browser interface served locally by a FastAPI backend. The closed loop and the trigger scheduler run in Python, so the browser never sets the timing.
 
 ## Quick start
 
@@ -47,15 +51,15 @@ git clone https://github.com/abrilcode/neuroback && cd neuroback
 pip install -e ".[all]"
 
 neuroback demo                      # headless closed loop on simulated alpha, prints accuracy
-neuroback gui                       # desktop app on simulated alpha (on-screen LED)
-neuroback gui --board playback      # replay real EEG (PhysioNet subject 1, downloaded on demand)
+neuroback app                       # interface in the browser, simulated alpha (on-screen LED)
+neuroback app --board playback      # replay real EEG (PhysioNet subject 1, downloaded on demand)
 neuroback benchmark                 # reproduce the 109-person benchmark (~140 MB download, ~2 min)
 ```
 
 With hardware (OpenBCI Cyton + Arduino with [`firmware/neuroback_trigger`](firmware/neuroback_trigger/neuroback_trigger.ino)):
 
 ```bash
-neuroback gui --board cyton --port /dev/cu.usbserial-XXXX --channel 8 \
+neuroback app --board cyton --port /dev/cu.usbserial-XXXX --channel 8 \
               --trigger-port /dev/cu.usbmodemXXXX --latency-ms 12
 ```
 
@@ -89,16 +93,24 @@ flowchart LR
 2. **Phase sweep.** Four target phases plus two controls with the same flash rate, each repeated in randomised blocks (20 s on, 10 s off). A cosine fit with a permutation test checks whether post-block alpha depends on phase.
 3. **Stimulate.** Pick a target phase. The app shows where each flash actually landed one second later, with live phase-locking, mean error and flash rate.
 
+## Interface
+
+<p align="center"><img src="docs/figures/app-stimulate.png" alt="Stimulate page: EEG with flash markers and an aligned LED stimulus track, phase dial with target wedge and measured flash phases, live accuracy tiles" width="100%"></p>
+
 <table>
 <tr>
-<td><img src="docs/figures/app-stimulate.png" alt="Stimulate page with phase dial and live accuracy"></td>
-<td><img src="docs/figures/app-calibrate.png" alt="Calibration page with IAF detection"></td>
+<td width="33%"><img src="docs/figures/app-calibrate.png" alt="Calibration page with IAF detection"></td>
+<td width="33%"><img src="docs/figures/app-sweep.png" alt="Phase sweep with randomised block schedule"></td>
+<td width="33%"><img src="docs/figures/app-results.png" alt="Results with permutation test"></td>
 </tr>
 <tr>
-<td align="center"><sub>Stimulate: target wedge, live phase needle, where flashes landed (dots)</sub></td>
-<td align="center"><sub>Calibrate: IAF after 1/f removal, eyes-closed vs eyes-open spectra</sub></td>
+<td align="center"><sub><b>Calibrate</b>: IAF after 1/f removal, eyes-closed vs eyes-open spectra</sub></td>
+<td align="center"><sub><b>Phase sweep</b>: randomised targets and flash-rate-matched controls</sub></td>
+<td align="center"><sub><b>Results</b>: post-block alpha by condition and a permutation test</sub></td>
 </tr>
 </table>
+
+The interface is a local web app: `neuroback app` starts a FastAPI server and opens the browser. Python runs acquisition, phase estimation and the sub-millisecond trigger scheduler; the browser only draws state frames (20 per second) and sends commands over a WebSocket. The [online demo](https://abrilcode.github.io/neuroback/demo/) uses the same interface on a replay of PhysioNet subject S004. Its flash times and sweep were precomputed by the same engine (`scripts/build_demo.py`).
 
 ## Benchmark: does it hit the phase it aims for?
 
@@ -169,11 +181,13 @@ src/neuroback/
   analysis.py      circular statistics, cosine fit, permutation test
   storage.py       pseudonymous SQLite store with erasure
   safety.py        photosensitivity screening
-  gui/             PyQt6 app
+  session.py       session state machine (screening gate, calibration, sweep, stimulation)
+  web/             FastAPI server + browser interface (HTML, CSS, canvas)
   bench/           PhysioNet loader + phase benchmark
 firmware/          Arduino trigger (LED + TTL marker for the Cyton)
 scripts/           figure + illustration generation (every image is reproducible)
 docs/              benchmark, science review, hardware, protocol, safety, 2023 post-mortem
+docs/demo/         online demo (GitHub Pages), built by scripts/build_demo.py
 legacy/2023/       the original 2023 code, unchanged
 ```
 
@@ -187,7 +201,7 @@ legacy/2023/       the original 2023 code, unchanged
 
 ## Citing
 
-If you use NeuroBack, please cite the software ([CITATION.cff](CITATION.cff)) and the methods it builds on: Huang et al. 2019; Schreglmann et al. 2021; Zrenner et al. 2020. Cite the dataset too: Schalk et al. 2004; Goldberger et al. 2000.
+Work that uses NeuroBack should cite the software ([CITATION.cff](CITATION.cff)) and the methods it builds on: Huang et al. 2019; Schreglmann et al. 2021; Zrenner et al. 2020. Cite the dataset too: Schalk et al. 2004; Goldberger et al. 2000.
 
 ## Credits
 

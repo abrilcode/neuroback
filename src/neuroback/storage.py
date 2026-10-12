@@ -43,7 +43,8 @@ class Store:
     def __init__(self, root: Path | str = "neuroback-data"):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(self.root / "neuroback.db")
+        # the web app calls in from worker threads; access is serialised by Session.lock
+        self.db = sqlite3.connect(self.root / "neuroback.db", check_same_thread=False)
         self.db.execute("PRAGMA foreign_keys = ON")
         self.db.executescript(SCHEMA)
 

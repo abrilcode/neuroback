@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroBack · closed-loop alpha-phase stimulation</title>
+<meta name="description" content="Closed-loop visual stimulation phase-locked to the EEG alpha rhythm. OpenBCI Cyton, ecHT phase tracking.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M5 17 C8 9, 11 9, 13 16 S18 24, 21 16 S25 9, 27 15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="21.2" cy="16" r="2.6" fill="#0EA5E9"/>
+    </svg>
+    <span>NeuroBack</span><span class="ver" id="ver"></span>
+  </div>
+  <div class="pills">
+    <span class="pill" id="pill-source">Connecting…</span>
+    <span class="pill" id="pill-pid">No participant</span>
+    <span class="pill" id="pill-iaf">IAF –</span>
+    <span class="pill demo" id="pill-demo" hidden>Online demo · replay of recorded EEG</span>
+  </div>
+  <div class="right">
+    <div class="led-wrap" title="Mirrors every stimulus flash"><span>LED</span><div class="led" id="led"></div></div>
+    <button class="stop" id="btn-stop" title="Cancel all pending flashes">STOP <kbd>Esc</kbd></button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="steps" id="steps">
+    <button data-page="participant"><span class="n">1</span><span><b>Participant</b><small>Screening and consent</small></span></button>
+    <button data-page="calibrate"><span class="n">2</span><span><b>Calibrate</b><small>Individual alpha frequency</small></span></button>
+    <button data-page="sweep"><span class="n">3</span><span><b>Phase sweep</b><small>Targets and controls</small></span></button>
+    <button data-page="stimulate"><span class="n">4</span><span><b>Stimulate</b><small>Closed loop</small></span></button>
+    <button data-page="results"><span class="n">5</span><span><b>Results</b><small>Phase dependence</small></span></button>
+    <div class="nav-foot">
+      <a href="https://github.com/abrilcode/neuroback" target="_blank" rel="noopener">Source and documentation</a>
+    </div>
+  </nav>
+
+  <main>
+    <!-- 1 participant -->
+    <section class="page" id="page-participant">
+      <div class="page-head">
+        <h1>Participant</h1>
+        <p>Participants exist only as random pseudonyms; no names are stored. Stimulation unlocks after photosensitivity screening and recorded consent.</p>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">New participant</div>
+          <label class="field">Age band <select id="age"></select></label>
+          <div class="field-label">Photosensitivity screening <span class="hint">any “yes” locks stimulation</span></div>
+          <div id="screening" class="screening"></div>
+          <label class="check"><input type="checkbox" id="consent"> Informed consent obtained and flashing-light warning read</label>
+          <button class="primary wide" id="btn-create">Create participant</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Participants <span class="count" id="pcount"></span></div>
+          <div id="plist" class="plist"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 calibrate -->
+    <section class="page" id="page-calibrate">
+      <div class="page-head">
+        <h1>Calibrate</h1>
+        <p>Record eyes open, then eyes closed. The individual alpha frequency (IAF) is the spectral peak after removing the 1/f background; alpha should rise clearly when the eyes close.</p>
+      </div>
+      <div class="card plot-card">
+        <div class="card-title">EEG · Oz <span class="legend"><span><i class="sw raw"></i>raw</span><span><i class="sw alpha"></i>alpha band (IAF ± 2 Hz)</span></span></div>
+        <canvas id="cv-cal" height="260"></canvas>
+      </div>
+      <div class="controls">
+        <button id="btn-eo">Eyes open · 60 s</button>
+        <button id="btn-ec">Eyes closed · 60 s</button>
+        <div class="progress"><div id="cal-bar"></div></div>
+        <span class="status" id="cal-status"></span>
+      </div>
+      <div class="grid-cal">
+        <div class="tile-col">
+          <div class="tile row"><span>Individual alpha frequency</span><b id="t-iaf">–</b></div>
+          <div class="tile row"><span>Alpha peak above 1/f</span><b id="t-snr">–</b></div>
+          <div class="tile row"><span>Eyes-closed / open alpha</span><b id="t-react">–</b></div>
+        </div>
+        <div class="card plot-card spec">
+          <div class="card-title">Power spectrum <span class="legend"><span><i class="sw alpha"></i>eyes closed</span><span><i class="sw raw"></i>eyes open</span></span></div>
+          <canvas id="cv-spec" height="222"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 sweep -->
+    <section class="page" id="page-sweep">
+      <div class="page-head">
+        <h1>Phase sweep</h1>
+        <p>Four target phases and two controls with the same flash rate (open-loop flicker at the IAF, random phase), repeated in randomised blocks. Alpha is measured in the stimulus-free gap after each block, where there is no steady-state visual response.</p>
+      </div>
+      <div class="grid-main">
+        <div class="card plot-card">
+          <div class="card-title">EEG and stimulus <span class="legend"><span><i class="sw alpha"></i>alpha</span><span><i class="sw flash"></i>flash</span></span></div>
+          <canvas id="cv-sweep" height="300"></canvas>
+        </div>
+        <div class="card dial-card">
+          <div class="card-title">Alpha phase</div>
+          <canvas id="cv-dial-sweep" height="300"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Block schedule <span class="status" id="sweep-status"></span></div>
+        <div id="schedule" class="schedule"></div>
+        <div class="progress"><div id="sweep-bar"></div></div>
+        <div class="schedule-key"><span><i class="k phase"></i>target phase</span><span><i class="k control"></i>control</span><span><i class="k now"></i>current block</span></div>
+      </div>
+      <div class="controls">
+        <label class="check"><input type="checkbox" id="demo-timing" checked> Short blocks (4 s on / 2 s off, 2 repeats)</label>
+        <button class="primary" id="btn-sweep">Start sweep</button>
+      </div>
+    </section>
+
+    <!-- 4 stimulate -->
+    <section class="page" id="page-stimulate">
+      <div class="page-head">
+        <h1>Stimulate</h1>
+        <p>The endpoint-corrected Hilbert transform estimates the alpha phase at every sample and one flash is scheduled per cycle at the target phase. Dots on the dial show where recent flashes landed, measured afterwards with a non-causal Hilbert transform.</p>
+      </div>
+      <div class="grid-main">
+        <div class="card plot-card">
+          <div class="card-title">EEG and stimulus <span class="legend"><span><i class="sw raw"></i>raw</span><span><i class="sw alpha"></i>alpha</span><span><i class="sw flash"></i>flash</span></span></div>
+          <canvas id="cv-stim" height="300"></canvas>
+        </div>
+        <div class="card dial-card">
+          <div class="card-title">Alpha phase <span class="legend"><span><i class="sw wedge"></i>target</span><span><i class="sw flash"></i>measured</span></span></div>
+          <canvas id="cv-dial" height="236"></canvas>
+          <div class="target">
+            <label for="target">Target phase</label>
+            <input type="range" id="target" min="0" max="359" step="1" value="0">
+            <output id="target-out">0°</output>
+          </div>
+          <div class="presets">
+            <button data-t="0">Peak</button><button data-t="90">Falling</button><button data-t="180">Trough</button><button data-t="270">Rising</button>
+          </div>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><span>Flashes per second</span><b id="m-rate">–</b></div>
+        <div class="tile"><span>Phase locking (PLV)</span><b id="m-plv">–</b></div>
+        <div class="tile"><span>Mean phase error</span><b id="m-err">–</b></div>
+        <div class="tile"><span>Alpha amplitude</span><b id="m-amp">–</b></div>
+      </div>
+      <div class="controls">
+        <button class="primary" id="btn-stim">Start stimulation</button>
+        <span class="status" id="stim-status"></span>
+      </div>
+    </section>
+
+    <!-- 5 results -->
+    <section class="page" id="page-results">
+      <div class="page-head">
+        <h1>Results</h1>
+        <p>Post-block alpha power by condition (mean ± SEM, relative to the session mean). A permutation test checks for a one-cycle dependence on stimulation phase.</p>
+      </div>
+      <div class="card plot-card">
+        <div class="card-title">Post-block alpha power</div>
+        <canvas id="cv-results" height="320"></canvas>
+      </div>
+      <div class="card stats" id="results-text">Run a phase sweep to see results.</div>
+      <div class="controls"><button id="btn-save">Save session</button></div>
+    </section>
+  </main>
+</div>
+
+<footer class="warning">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  <span id="warning">Flashing light at 8–13 Hz. Research and teaching use only. Not a medical device.</span>
+</footer>
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>

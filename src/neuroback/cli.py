@@ -1,4 +1,4 @@
-"""Command-line entry point: ``neuroback {gui,demo,benchmark,screenshots}``."""
+"""Command-line entry point: ``neuroback {app,demo,benchmark}``."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ def _source(args):
     from .sources import ArrayPlayback, BrainFlowSource, SimulatedAlpha
 
     if args.board == "simulated":
-        return SimulatedAlpha()
+        return SimulatedAlpha(realtime=True)
     if args.board == "playback":
         import numpy as np
 
@@ -23,12 +23,15 @@ def _source(args):
     return BrainFlowSource(args.board, serial_port=args.port or "", channel=args.channel)
 
 
-def cmd_gui(args):
-    from .gui.app import main
+def cmd_app(args):
+    from .session import Session
     from .stimulators import SerialTrigger
+    from .web.server import serve
 
     stim = SerialTrigger(args.trigger_port) if args.trigger_port else None
-    return main(_source(args), stim, latency_ms=args.latency_ms, estimator=args.estimator)
+    session = Session(_source(args), stim, data_dir=args.data_dir, latency_ms=args.latency_ms, estimator=args.estimator)
+    serve(session, port=args.http_port, open_browser=not args.no_browser)
+    return 0
 
 
 def cmd_demo(args):
@@ -60,19 +63,11 @@ def cmd_benchmark(args):
     return 0
 
 
-def cmd_screenshots(args):
-    from .gui.app import render_screenshots
-
-    for p in render_screenshots(args.out):
-        print(p)
-    return 0
-
-
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="neuroback", description="Closed-loop alpha-phase-locked visual stimulation.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    g = sub.add_parser("gui", help="desktop app")
+    g = sub.add_parser("app", help="interface in the browser (local web app)")
     g.add_argument("--board", choices=["simulated", "playback", "synthetic", "cyton"], default="simulated")
     g.add_argument("--port", help="Cyton dongle serial port, e.g. /dev/cu.usbserial-XXXX or COM3")
     g.add_argument("--channel", type=int, default=8, help="Cyton input (1-8) with the occipital electrode")
@@ -80,7 +75,10 @@ def main(argv=None) -> int:
     g.add_argument("--trigger-port", help="Arduino serial port (omit for an on-screen LED)")
     g.add_argument("--latency-ms", type=float, default=0.0, help="measured output latency to compensate")
     g.add_argument("--estimator", choices=["ecHT", "AR"], default="ecHT")
-    g.set_defaults(func=cmd_gui)
+    g.add_argument("--data-dir", default="neuroback-data", help="where pseudonymous sessions are stored")
+    g.add_argument("--http-port", type=int, default=8765)
+    g.add_argument("--no-browser", action="store_true", help="do not open a browser window")
+    g.set_defaults(func=cmd_app)
 
     d = sub.add_parser("demo", help="headless closed loop on simulated alpha")
     d.add_argument("--seconds", type=float, default=60)
@@ -92,10 +90,6 @@ def main(argv=None) -> int:
     b.add_argument("--subjects", type=int, default=109)
     b.add_argument("--out", default="results")
     b.set_defaults(func=cmd_benchmark)
-
-    s = sub.add_parser("screenshots", help="render app screenshots (offscreen)")
-    s.add_argument("--out", default="docs/figures")
-    s.set_defaults(func=cmd_screenshots)
 
     args = p.parse_args(argv)
     return args.func(args)

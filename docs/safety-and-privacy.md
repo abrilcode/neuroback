@@ -12,11 +12,11 @@ NeuroBack flashes light at the participant's alpha frequency, about 8–13 Hz.
 - **STOP** button and **Esc** shortcut: they cancel every pending flash immediately.
 - `max_session_min` in the session config (default 45 min).
 
-**Your responsibility**
+**Researcher responsibilities**
 - Screen every participant and exclude anyone with a personal or family history of epilepsy or seizures, or flicker-triggered symptoms.
 - Use a **diffused** LED at modest brightness, off the central field of view, and avoid saturated red light.
 - Stop at the first report of discomfort, visual disturbance, nausea or headache.
-- Get ethics approval before testing on anyone other than yourself, and follow your institution's rules.
+- Obtain ethics approval before testing on participants, and follow institutional rules.
 - Consider auditory pulses instead of light. That variant is better replicated (Hebron et al., 2024) and avoids photosensitivity risk.
 
 ## Not a medical device
@@ -35,10 +35,10 @@ EEG linked to a person is health data:
 The UNESCO Recommendation on the Ethics of Neurotechnology (2025) asks for opt-in consent and data minimisation.
 
 **What NeuroBack does**
-- **Pseudonyms only.** Participants are random IDs such as `P-7F3A1C`. No names are stored anywhere. Keep any ID-to-person key offline, under your institution's controls.
+- **Pseudonyms only.** Participants are random IDs such as `P-7F3A1C`. No names are stored anywhere. Keep any ID-to-person key offline, under institutional controls.
 - **Minimal data:** age band (not date of birth), screening outcome and consent time.
 - **Fixed schema, parameterised SQL.** The 2023 app built table names from patient names, which allowed SQL injection.
 - **Erasure:** "Delete participant and data" removes the database rows and session files.
 - **Local only:** nothing is uploaded anywhere.
 
-**What you should add for real studies:** disk encryption, access control, a data-management plan, and retention limits.
+**Recommended additions for real studies:** disk encryption, access control, a data-management plan, and retention limits.

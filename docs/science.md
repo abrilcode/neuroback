@@ -31,7 +31,7 @@ Huang et al. (2019) proposed the visual version and called it "training-free ext
 
 ## 3. Evidence for classic EEG neurofeedback
 
-Effects shrink as the control condition gets closer to a real sham. Sham means the same setup, but the feedback does not depend on your brain.
+Effects shrink as the control condition gets closer to a real sham. Sham means the same setup, but the feedback does not depend on the participant's brain activity.
 
 ![Evidence map](figures/evidence-map.png)
 

@@ -21,11 +21,11 @@ classifiers = [
 dependencies = ["numpy>=1.24", "scipy>=1.10"]
 
 [project.optional-dependencies]
-gui = ["PyQt6>=6.5", "pyqtgraph>=0.13"]
+app = ["fastapi>=0.110", "uvicorn[standard]>=0.27"]
 hardware = ["brainflow>=5.12", "pyserial>=3.5"]
 figures = ["matplotlib>=3.7", "pillow>=10"]
-dev = ["pytest>=7"]
-all = ["neuroback[gui,hardware,figures,dev]"]
+dev = ["pytest>=7", "httpx>=0.27"]
+all = ["neuroback[app,hardware,figures,dev]"]
 
 [project.scripts]
 neuroback = "neuroback.cli:main"
@@ -35,6 +35,9 @@ Repository = "https://github.com/abrilcode/neuroback"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"neuroback.web" = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

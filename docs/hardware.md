@@ -16,7 +16,7 @@
 
 - **Active electrode:** Oz (occipital midline), where alpha is strongest with the eyes closed. Fp1, used in 2023, mostly picks up eye blinks; avoid it for alpha tracking.
 - **Reference and bias:** SRB2 and BIAS to the left and right earlobes (or mastoids).
-- **Channel:** pass the Cyton input you used as `--channel` (default 8).
+- **Channel:** pass the Cyton input that carries Oz as `--channel` (default 8).
 - **Impedance:** below ~10 kΩ. Check alpha reactivity in the Calibrate step: eyes-closed alpha should be clearly above eyes-open alpha (×2 or more).
 
 ## Fix the Cyton's USB latency first
@@ -27,13 +27,13 @@ The Cyton dongle uses an FTDI chip whose latency timer defaults to 16 ms. With t
 - **Linux:** `echo 1 | sudo tee /sys/bus/usb-serial/devices/ttyUSB0/latency_timer`
 - **macOS:** follow the [OpenBCI macOS FTDI guide](https://docs.openbci.com/Troubleshooting/FTDI_Fix_Mac/). Recent macOS versions use Apple's built-in driver, so check the current instructions.
 
-## Measure your output latency (photodiode loop-back)
+## Measuring output latency (photodiode loop-back)
 
-NeuroBack can compensate a fixed output delay (`--latency-ms`), but it has to be measured on your setup. The delay covers the radio link, USB, the serial write, the Arduino and the LED rise time.
+NeuroBack can compensate a fixed output delay (`--latency-ms`), but it has to be measured on each setup. The delay covers the radio link, USB, the serial write, the Arduino and the LED rise time.
 
 1. Tape a photodiode over the LED. Wire it to one of the Cyton's analog inputs (A5–A7) and put the board in analog-read mode (`/2` command; see the OpenBCI Cyton SDK docs). Alternatively, wire the Arduino's `TRIGGER_OUT` (pin 7) to a Cyton digital input in digital-read mode (`/3`) to log commanded flash times.
-2. Run `neuroback gui --board cyton ... --latency-ms 0` and stimulate at 0° for 2 minutes.
-3. In the saved session, compare commanded flash times (`events.json`) with photodiode onsets on the EEG clock. The median difference is your latency; its spread is your jitter.
+2. Run `neuroback app --board cyton ... --latency-ms 0` and stimulate at 0° for 2 minutes.
+3. In the saved session, compare commanded flash times (`events.json`) with photodiode onsets on the EEG clock. The median difference is the output latency; its spread is the jitter.
 4. Restart with `--latency-ms <median>`. At 10 Hz, every 1 ms of error costs 3.6° of phase.
 
 ![Timing is phase](figures/jitter-budget.png)

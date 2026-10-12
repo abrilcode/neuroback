@@ -13,7 +13,9 @@
 - **Protocol.** Randomised, repeated phase sweep with open-loop and random-phase controls, post-block alpha, permutation test.
 - **Individual alpha frequency.** 1/f-corrected peak at ~0.05 Hz resolution (was a 1.34 Hz grid), plus a reactivity check.
 - **Benchmark.** Phase accuracy on real EEG from 109 people (PhysioNet EEGMMIDB), reproducible with `neuroback benchmark`.
-- **Desktop app.** New PyQt6 step flow (Participant → Calibrate → Phase sweep → Stimulate → Results) with a phase dial, live accuracy and an emergency stop.
+- **Interface.** A local web app (FastAPI backend, browser front end) replaces the PyQt6 window: step flow Participant → Calibrate → Phase sweep → Stimulate → Results, with a phase dial, an aligned stimulus track, live accuracy and an emergency stop. Timing stays in Python.
+- **Online demo.** The same interface on GitHub Pages, replaying recorded EEG with flash times computed by the real engine.
+- **Session core.** `neuroback.session.Session` holds all protocol logic, independent of the interface, and is covered by tests.
 - **Safety and privacy.**
   - Photosensitivity screening and consent gate.
   - Pseudonymous storage with parameterised SQL and erasure.

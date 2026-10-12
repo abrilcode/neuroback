@@ -10,11 +10,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 SCREENING_QUESTIONS = (
-    "Have you ever had a seizure, convulsion or epilepsy diagnosis?",
-    "Has a close relative (parent, sibling, child) been diagnosed with epilepsy?",
-    "Have flashing or flickering lights (screens, strobes, sunlight through trees) ever made you feel unwell, dizzy or caused migraine?",
-    "Are you taking any medication or substance known to lower the seizure threshold, or are you sleep-deprived today?",
-    "Do you have any neurological, psychiatric or eye condition you have not discussed with the study team?",
+    "Any history of seizures, convulsions or an epilepsy diagnosis",
+    "Epilepsy in a first-degree relative (parent, sibling, child)",
+    "Discomfort, dizziness or migraine ever triggered by flashing or flickering light (screens, strobes, sunlight through trees)",
+    "Current medication or substance known to lower the seizure threshold, or sleep deprivation today",
+    "Any neurological, psychiatric or eye condition not yet discussed with the study team",
 )
 
 WARNING = (

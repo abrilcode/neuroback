@@ -63,13 +63,32 @@ def test_edf_reader_roundtrip(tmp_path):
     assert fs == 160 and np.allclose(x, oz, atol=0.11)
 
 
-def test_gui_smoke(tmp_path):
-    pytest.importorskip("PyQt6")
-    pytest.importorskip("pyqtgraph")
-    import os
+def test_web_app_serves_interface_and_runs_commands(tmp_path):
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
 
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    from neuroback.gui.app import render_screenshots
+    from neuroback.safety import SCREENING_QUESTIONS
+    from neuroback.session import Session
+    from neuroback.web.server import create_app
 
-    paths = render_screenshots(tmp_path)
-    assert len(paths) == 5 and all(p.stat().st_size > 10_000 for p in paths)
+    session = Session(SimulatedAlpha(realtime=False, iaf=10.0, seed=2), data_dir=tmp_path)
+    with TestClient(create_app(session, tick=False)) as client:
+        page = client.get("/")
+        assert page.status_code == 200 and "NeuroBack" in page.text
+        assert client.get("/app.js").status_code == 200
+        with client.websocket_connect("/ws") as ws:
+            hello = ws.receive_json()
+            assert hello["type"] == "hello" and len(hello["questions"]) == len(SCREENING_QUESTIONS)
+            ws.send_json({"cmd": "create_participant", "age_band": "18-29",
+                          "answers": [False] * len(SCREENING_QUESTIONS), "consent": True, "id": 1})
+            ws.send_json({"cmd": "start_stim", "id": 2})
+            replies, state = {}, None
+            while len(replies) < 2 or state is None:
+                m = ws.receive_json()
+                if m["type"] == "reply":
+                    replies[m["id"]] = m
+                elif m["type"] == "state":
+                    state = m
+            assert replies[1]["ok"] and replies[1]["pid"].startswith("P-")
+            assert not replies[2]["ok"]  # locked until calibration
+            assert {"eeg", "flashes", "participants", "metrics"} <= set(state)
