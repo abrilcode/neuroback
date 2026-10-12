@@ -9,7 +9,8 @@ Issues and pull requests are welcome, especially:
 ```bash
 pip install -e ".[all]"
 pytest
-python scripts/make_figures.py   # after `neuroback benchmark`
+python scripts/make_figures.py        # charts + demo GIF, after `neuroback benchmark`
+python scripts/make_illustrations.py  # hero + hardware diagram (needs Google Chrome)
 ```
 
 Please do not add therapeutic or diagnostic claims to the code or docs. NeuroBack is research and teaching software.

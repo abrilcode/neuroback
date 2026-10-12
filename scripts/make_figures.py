@@ -3,9 +3,10 @@
     python scripts/make_figures.py                  # needs results/ from `neuroback benchmark`
     python scripts/make_figures.py --legacy-csv path/to/EV-EEG*.csv   # also the 2023 audit figure
 
-Nothing here is drawn by hand: the benchmark plots read results/benchmark.json, the hero
-and demo animation run the real closed loop on PhysioNet EEG, and the evidence map plots
-published effect sizes listed (with sources) in EVIDENCE below.
+Nothing here is drawn by hand: the benchmark plots read results/benchmark.json, the demo
+animation runs the real closed loop on PhysioNet EEG, and the evidence map plots published
+effect sizes listed (with sources) in EVIDENCE below. The hero and hardware diagram are
+built by scripts/make_illustrations.py.
 """
 
 from __future__ import annotations
@@ -282,42 +283,6 @@ def _closed_loop_on(x, fs, iaf):
     return truth, alpha, t
 
 
-def fig_hero():
-    x, fs, iaf = _subject(4)
-    truth, alpha, trig = _closed_loop_on(x, fs, iaf)
-    t0, dur = 20.0, 3.2
-    tx = np.arange(len(x)) / fs
-    m = (tx >= t0) & (tx < t0 + dur)
-    tt = tx[m]
-    k = 30 / np.max(np.abs(alpha[m]))  # alpha band spans -80..-20
-    yoff = -50
-    fig = plt.figure(figsize=(12.8, 6.4), dpi=100)
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.set_facecolor(BG)
-    ax.set_xlim(t0 - 0.05, t0 + dur)
-    ax.set_ylim(-100, 75)
-    ax.axis("off")
-    raw = np.clip(x[m] * k * 0.6 + yoff, -97, -4)
-    ax.plot(tt, raw, color=MUTED, lw=0.8, alpha=0.22)
-    for w, a in ((10, 0.05), (5, 0.10), (2.2, 1.0)):
-        ax.plot(tt, alpha[m] * k + yoff, color=MINT, lw=w, alpha=a, solid_capstyle="round")
-    ft = trig[(trig >= t0) & (trig < t0 + dur)]
-    fy = np.interp(ft, tx, alpha) * k + yoff
-    for f, y in zip(ft, fy):
-        for top, a in ((y + 8, 0.35), (y + 16, 0.18), (y + 26, 0.08)):
-            ax.plot([f, f], [y, top], color=FLASH, lw=1.4, alpha=a, solid_capstyle="round")
-        for sz, a in ((520, 0.07), (190, 0.2), (36, 1.0)):
-            ax.scatter([f], [y], s=sz, color=FLASH, alpha=a, linewidths=0, zorder=4)
-    ax.text(t0 + 0.08, 50, "NeuroBack", fontsize=66, weight="bold", color=TEXT, va="center")
-    ax.text(t0 + 0.1, 27, "Closed-loop light stimulation, locked to your alpha rhythm", fontsize=21, color=TEXT, va="center")
-    ax.text(t0 + 0.1, 14, "OpenBCI Cyton  ·  endpoint-corrected Hilbert transform  ·  109-person real-EEG benchmark  ·  PyQt6 app",
-            fontsize=12.5, color=MUTED, va="center")
-    ax.text(t0 + dur - 0.06, -96, "Real EEG, PhysioNet S004, Oz.  Yellow: flashes scheduled causally at the alpha peak.",
-            fontsize=9.5, color=MUTED, ha="right", va="bottom")
-    fig.savefig(ASSETS / "hero.png", dpi=100)
-    plt.close(fig)
-
-
 def demo_gif(seconds=6.0, fps=12):
     from matplotlib.animation import FuncAnimation, PillowWriter
 
@@ -387,7 +352,6 @@ def main():
     fig_legacy_filter()
     fig_jitter_budget()
     fig_evidence()
-    fig_hero()
     if a.legacy_csv:
         fig_legacy_audit(Path(a.legacy_csv))
     if not a.skip_gif:

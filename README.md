@@ -61,6 +61,17 @@ neuroback gui --board cyton --port /dev/cu.usbserial-XXXX --channel 8 \
 
 Read [docs/hardware.md](docs/hardware.md) first: it covers the electrode montage, the FTDI latency fix, LED safety, and how to measure `--latency-ms` with a photodiode.
 
+## Hardware setup
+
+<p align="center"><img src="assets/hardware-setup.png" alt="Hardware setup: electrodes at Oz, OpenBCI Cyton, radio dongle, laptop running NeuroBack, Arduino trigger and a diffused LED in front of the participant's eyes, with the visual pathway from retina to visual cortex" width="100%"></p>
+
+The loop runs once per alpha cycle:
+- **Recording:** an electrode at **Oz**, over the visual cortex, picks up the alpha rhythm. The **OpenBCI Cyton** digitises it at 250 Hz and radios it to the laptop.
+- **Timing:** **NeuroBack** estimates the alpha phase and tells an **Arduino** exactly when to pulse a **diffused LED**.
+- **Closing the loop:** the flash reaches the retina and travels through the thalamus (LGN) to the visual cortex (V1), where the next alpha cycle is measured.
+
+Parts, wiring and latency calibration are in [docs/hardware.md](docs/hardware.md).
+
 ## How it works
 
 ```mermaid
@@ -161,7 +172,7 @@ src/neuroback/
   gui/             PyQt6 app
   bench/           PhysioNet loader + phase benchmark
 firmware/          Arduino trigger (LED + TTL marker for the Cyton)
-scripts/           figure generation (every figure is reproducible)
+scripts/           figure + illustration generation (every image is reproducible)
 docs/              benchmark, science review, hardware, protocol, safety, 2023 post-mortem
 legacy/2023/       the original 2023 code, unchanged
 ```

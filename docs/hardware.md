@@ -1,5 +1,7 @@
 # Hardware
 
+![How NeuroBack is wired](../assets/hardware-setup.png)
+
 ## Bill of materials
 
 | Part | Notes |
